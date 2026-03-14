@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const authRoutes = require("./routes/authRoutes");
 
 const connectDB = require("./config/db");
 
@@ -17,6 +18,8 @@ app.get("/health", (req, res) => {
     status: "running"
   });
 });
+
+app.use("/api/auth", authRoutes);
 
 const PORT = process.env.PORT || 5001;
 
