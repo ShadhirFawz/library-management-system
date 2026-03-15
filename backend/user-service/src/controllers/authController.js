@@ -1,17 +1,10 @@
 const authService = require("../services/authService");
-const sendEvent = require("../kafka/producer");
-const topics = require("../kafka/topics");
 
 exports.register = async (req, res, next) => {
 
   try {
 
     const user = await authService.registerUser(req.body);
-
-    await sendEvent(topics.USER_CREATED, {
-      userId: user._id,
-      email: user.email
-    });
 
     res.status(201).json({
       message: "User registered successfully",
