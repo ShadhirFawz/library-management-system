@@ -3,10 +3,12 @@ const cors = require("cors");
 require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
+const healthRoutes = require("./routes/healthRoutes");
 const errorHandler = require("./middleware/errorHandler");
 const membershipRoutes = require("./routes/membershipRoutes");
 const swaggerUi = require("swagger-ui-express");
 const specs = require("./config/swagger");
+const config = require("./config");
 
 const connectDB = require("./config/db");
 
@@ -28,11 +30,12 @@ app.get("/health", (req, res) => {
 
 app.use(errorHandler);
 
+app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/memberships", membershipRoutes);
 
-const PORT = process.env.PORT || 5001;
+const PORT = config.port;
 
 app.listen(PORT, () => {
   console.log(`User Service running on port ${PORT}`);
