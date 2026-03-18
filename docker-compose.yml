@@ -6,3 +6,13 @@ services:
     container_name: library-mongo
     ports:
       - "27017:27017"
+
+  user-service:
+    build: ./backend/user-service
+    container_name: user-service
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./backend/user-service/.env
+    depends_on:
+      - mongo
