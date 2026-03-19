@@ -14,13 +14,20 @@ const { register, login } = require("../controllers/authController");
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - fullName
+ *               - email
+ *               - password
  *             properties:
- *               username:
+ *               fullName:
  *                 type: string
+ *                 example: John Doe
  *               email:
  *                 type: string
+ *                 example: john@example.com
  *               password:
  *                 type: string
+ *                 example: password123
  *     responses:
  *       201:
  *         description: User registered successfully

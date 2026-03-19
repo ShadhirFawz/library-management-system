@@ -28,12 +28,12 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.use(errorHandler);
-
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/memberships", membershipRoutes);
+
+app.use(errorHandler);
 
 const PORT = config.port;
 
