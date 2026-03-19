@@ -1,7 +1,16 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { raiseTicket, getMyTickets, getAllTickets, respondToTicket } = require('../controllers/ticketController');
-const { authenticate, adminOnly } = require('../middleware/auth');
+const {
+  raiseTicket,
+  getMyTickets,
+  getAllTickets,
+  respondToTicket,
+} = require("../controllers/ticketController");
+const {
+  authenticate,
+  adminOnly,
+  authorizeRoles,
+} = require("../middleware/auth");
 
 /**
  * @openapi
@@ -48,11 +57,22 @@ const { authenticate, adminOnly } = require('../middleware/auth');
  *         description: Updated ticket
  */
 // USER
-router.post('/', authenticate, raiseTicket);           // raise a ticket
-router.get('/my', authenticate, getMyTickets);         // view own tickets
+router.post("/", authenticate, raiseTicket); // raise a ticket
+router.get("/my", authenticate, getMyTickets); // view own tickets
 
 // ADMIN
-router.get('/all', authenticate, adminOnly, getAllTickets);             // view all tickets
-router.put('/:id/respond', authenticate, adminOnly, respondToTicket);  // respond to a ticket
+// allow librarians to view/respond to tickets
+router.get(
+  "/all",
+  authenticate,
+  authorizeRoles("admin", "librarian"),
+  getAllTickets,
+); // view all tickets
+router.put(
+  "/:id/respond",
+  authenticate,
+  authorizeRoles("admin", "librarian"),
+  respondToTicket,
+); // respond to a ticket
 
 module.exports = router;

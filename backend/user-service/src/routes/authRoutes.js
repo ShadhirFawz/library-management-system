@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, login } = require("../controllers/authController");
+const { register, login, verify } = require("../controllers/authController");
 
 /**
  * @swagger
@@ -59,5 +59,20 @@ router.post("/register", register);
  *         description: Unauthorized
  */
 router.post("/login", login);
+
+/**
+ * @swagger
+ * /api/auth/verify:
+ *   get:
+ *     summary: Verify JWT token (for inter-service use)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token is valid
+ *       401:
+ *         description: Invalid or no token
+ */
+router.get("/verify", verify);
 
 module.exports = router;

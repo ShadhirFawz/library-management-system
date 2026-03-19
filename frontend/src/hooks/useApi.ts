@@ -1,17 +1,30 @@
 // ============================
-// API Hook — All endpoints are placeholders
-// Replace API_BASE_URL after export
+// API Hook — Connect to backend services
 // ============================
 
-const API_BASE_URL = "";
+const HELP_SERVICE_URL = import.meta.env.VITE_HELP_SERVICE_URL || 'http://localhost:8000';
+const ORDER_SERVICE_URL = import.meta.env.VITE_ORDER_SERVICE_URL || 'http://localhost:8001';
+const BOOK_CATALOG_URL = import.meta.env.VITE_BOOK_CATALOG_URL || 'http://localhost:8002';
+const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL || 'http://localhost:5001';
 
 export const useApi = () => {
-  const callApi = async (service: string, endpoint: string, options: RequestInit = {}) => {
-    // TODO: replace with real endpoint after export
-    const url = `${API_BASE_URL}/api/${service}/${endpoint}`;
-    console.log(`[API] Calling: ${url}`, options);
-    // Simulated network delay
-    return new Promise((resolve) => setTimeout(resolve, 500));
+  const getToken = () => localStorage.getItem('token') || '';
+
+  const callApi = async (baseUrl: string, endpoint: string, options: RequestInit = {}) => {
+    const url = `${baseUrl}/api/${endpoint}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...options.headers,
+    };
+    try {
+      const resp = await fetch(url, { ...options, headers });
+      if (!resp.ok) throw new Error(`API Error: ${resp.status}`);
+      return await resp.json();
+    } catch (err) {
+      console.error(`[API] Error calling ${url}:`, err);
+      throw err;
+    }
   };
 
   return {
@@ -72,11 +85,16 @@ export const useApi = () => {
       getAll: () => callApi('order-service', 'fines'),
       markPaid: (id: string) => callApi('order-service', `fines/${id}/pay`, { method: 'PATCH' }),
     },
-    support: {
-      getAll: () => callApi('customer-care', 'tickets'),
-      create: (data: any) => callApi('customer-care', 'tickets', { method: 'POST', body: JSON.stringify(data) }),
-      reply: (id: string, data: any) => callApi('customer-care', `tickets/${id}/reply`, { method: 'POST', body: JSON.stringify(data) }),
-      updateStatus: (id: string, status: string) => callApi('customer-care', `tickets/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+    tickets: {
+      getAll: () => callApi(HELP_SERVICE_URL, 'tickets/all'),
+      create: (data: any) => callApi(HELP_SERVICE_URL, 'tickets', { method: 'POST', body: JSON.stringify(data) }),
+      respond: (id: string, response: string, status?: string) => callApi(HELP_SERVICE_URL, `tickets/${id}/respond`, { method: 'PUT', body: JSON.stringify({ response, status }) }),
+    },
+    articles: {
+      getAll: () => callApi(HELP_SERVICE_URL, 'faq'),
+      create: (data: any) => callApi(HELP_SERVICE_URL, 'faq', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => callApi(HELP_SERVICE_URL, `faq/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id: string) => callApi(HELP_SERVICE_URL, `faq/${id}`, { method: 'DELETE' }),
     },
   };
 };

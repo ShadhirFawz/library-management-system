@@ -19,6 +19,7 @@ const menuItems = [
   { label: 'Reservations', icon: Calendar, path: '/staff/reservations', roles: ['ADMIN', 'LIBRARIAN'] },
   { label: 'Fines', icon: AlertCircle, path: '/staff/fines', roles: ['ADMIN', 'LIBRARIAN'] },
   { label: 'Support Tickets', icon: LifeBuoy, path: '/staff/tickets', roles: ['ADMIN', 'LIBRARIAN'] },
+  { label: 'FAQ', icon: LifeBuoy, path: '/staff/articles', roles: ['ADMIN', 'LIBRARIAN'] },
 ];
 
 const StaffLayout = () => {
