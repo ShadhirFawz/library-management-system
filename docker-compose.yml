@@ -6,6 +6,11 @@ services:
     container_name: library-mongo
     ports:
       - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   zookeeper:
     image: confluentinc/cp-zookeeper
@@ -16,3 +21,28 @@ services:
     image: confluentinc/cp-kafka
     ports:
       - "9092:9092"
+
+  user-service:
+    build:
+      context: ./backend/user-service
+    environment:
+      - PORT=5001
+      - JWT_SECRET=dev-secret
+    ports:
+      - "5001:5001"
+
+  help-service:
+    build:
+      context: ./backend/help-service
+    environment:
+      - PORT=8000
+      - MONGO_URI=mongodb://mongo:27017/library_help
+      - USER_SERVICE_URL=http://user-service:5001
+      - ALLOW_LOCAL_JWT_VERIFY=false
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      user-service:
+        condition: service_started
