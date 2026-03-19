@@ -12,11 +12,6 @@ services:
       timeout: 5s
       retries: 10
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper
-    ports:
-      - "2181:2181"
-
   kafka:
     image: confluentinc/cp-kafka
     ports:
