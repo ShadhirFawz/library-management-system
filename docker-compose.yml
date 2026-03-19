@@ -12,11 +12,6 @@ services:
       timeout: 5s
       retries: 10
 
-  kafka:
-    image: confluentinc/cp-kafka
-    ports:
-      - "9092:9092"
-
   user-service:
     build:
       context: ./backend/user-service

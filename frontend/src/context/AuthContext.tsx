@@ -12,25 +12,25 @@ interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   token: string | null;
-  login: (email: string, password: string) => boolean;
-  register: (data: any) => boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (data: any) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Mock credentials
-const MOCK_CREDENTIALS: Record<string, { password: string; user: AuthUser }> = {
-  'admin@libramanage.com': { password: 'admin123', user: { _id: 'usr1', fullName: 'John Admin', role: 'ADMIN', email: 'admin@libramanage.com', membershipId: null } },
-  'librarian@libramanage.com': { password: 'lib123', user: { _id: 'usr2', fullName: 'Sarah Librarian', role: 'LIBRARIAN', email: 'librarian@libramanage.com', membershipId: null } },
-  'alice@example.com': { password: 'member123', user: { _id: 'usr3', fullName: 'Alice Member', role: 'MEMBER', email: 'alice@example.com', membershipId: 'mem1' } },
-};
+// Backend API URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const USER_SERVICE_URL = `${API_BASE_URL}/api`;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Restore auth from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem('libramanage_auth');
     if (stored) {
@@ -38,29 +38,103 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const parsed = JSON.parse(stored);
         setUser(parsed.user);
         setToken(parsed.token);
-      } catch { /* ignore */ }
+      } catch (error) {
+        console.error('Failed to restore auth:', error);
+        localStorage.removeItem('libramanage_auth');
+      }
     }
+    setIsLoading(false);
   }, []);
 
-  const login = (email: string, _password: string): boolean => {
-    const cred = MOCK_CREDENTIALS[email];
-    if (cred) {
-      const authData = { token: 'mock-jwt-token-' + cred.user._id, user: cred.user };
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${USER_SERVICE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.message || 'Login failed' };
+      }
+
+      const data = await response.json();
+      const { user: backendUser, token: backendToken } = data;
+
+      // Map backend user to our AuthUser interface
+      const mappedUser: AuthUser = {
+        _id: backendUser._id,
+        fullName: backendUser.fullName,
+        role: backendUser.role || 'MEMBER',
+        email: backendUser.email,
+        membershipId: backendUser.membershipId || null,
+      };
+
+      const authData = { token: backendToken, user: mappedUser };
       localStorage.setItem('libramanage_auth', JSON.stringify(authData));
-      setUser(authData.user);
-      setToken(authData.token);
-      return true;
+      setUser(mappedUser);
+      setToken(backendToken);
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Network error during login';
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
     }
-    return false;
   };
 
-  const register = (_data: any): boolean => {
-    const newUser: AuthUser = { _id: 'usr-new', fullName: _data.fullName || 'New Member', role: 'MEMBER', email: _data.email, membershipId: null };
-    const authData = { token: 'mock-jwt-token-new', user: newUser };
-    localStorage.setItem('libramanage_auth', JSON.stringify(authData));
-    setUser(newUser);
-    setToken(authData.token);
-    return true;
+  const register = async (data: any): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${USER_SERVICE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: data.fullName,
+          email: data.email,
+          password: data.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.message || 'Registration failed' };
+      }
+
+      const responseData = await response.json();
+      const { user: backendUser } = responseData;
+
+      // Map backend user to our AuthUser interface
+      const mappedUser: AuthUser = {
+        _id: backendUser._id,
+        fullName: backendUser.fullName,
+        role: 'MEMBER',
+        email: backendUser.email,
+        membershipId: null,
+      };
+
+      // Auto-login after registration
+      // Note: The backend may or may not return a token; adjust as needed
+      const token = responseData.token || 'temp-token';
+      const authData = { token, user: mappedUser };
+      localStorage.setItem('libramanage_auth', JSON.stringify(authData));
+      setUser(mappedUser);
+      setToken(token);
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Network error during registration';
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = () => {
@@ -70,7 +144,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, isAuthenticated: !!user, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
