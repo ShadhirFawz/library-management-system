@@ -1,34 +1,44 @@
 const authService = require("../services/authService");
+const jwt = require("jsonwebtoken");
 
 exports.register = async (req, res, next) => {
-
   try {
-
     const user = await authService.registerUser(req.body);
 
     res.status(201).json({
       message: "User registered successfully",
-      user
+      user,
     });
-
   } catch (error) {
     next(error);
   }
-
 };
 
 exports.login = async (req, res, next) => {
-
   try {
-
     const { email, password } = req.body;
 
     const result = await authService.loginUser(email, password);
 
     res.json(result);
-
   } catch (error) {
     next(error);
   }
+};
 
+// Verify token endpoint (for inter-service verification)
+exports.verify = (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Map 'id' to 'userId' for help-service compatibility
+    res.json({ user: { userId: decoded.id, role: decoded.role } });
+  } catch (error) {
+    res.status(401).json({ message: "Invalid or expired token" });
+  }
 };

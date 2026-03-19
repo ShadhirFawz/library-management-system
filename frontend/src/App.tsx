@@ -26,6 +26,7 @@ import BorrowingOrders from "@/pages/staff/BorrowingOrders";
 import StaffReservations from "@/pages/staff/Reservations";
 import StaffFines from "@/pages/staff/Fines";
 import SupportTickets from "@/pages/staff/SupportTickets";
+import StaffArticles from "@/pages/staff/Articles";
 
 // Member pages
 import MemberDashboard from "@/pages/member/Dashboard";
@@ -75,6 +76,7 @@ const AppRoutes = () => (
       <Route path="reservations" element={<StaffReservations />} />
       <Route path="fines" element={<StaffFines />} />
       <Route path="tickets" element={<SupportTickets />} />
+        <Route path="articles" element={<StaffArticles />} />
     </Route>
 
     {/* Member */}
