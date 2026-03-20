@@ -2,7 +2,10 @@
 // API Hook — Real backend integration
 // ============================
 
-const USER_SERVICE_URL = 'http://localhost:5001';
+const HELP_SERVICE_URL = import.meta.env.VITE_HELP_SERVICE_URL || 'http://localhost:5004';
+const ORDER_SERVICE_URL = import.meta.env.VITE_ORDER_SERVICE_URL || 'http://localhost:5003';
+const BOOK_CATALOG_URL = import.meta.env.VITE_BOOK_CATALOG_URL || 'http://localhost:5002';
+const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL || 'http://localhost:5001';
 
 export const useApi = () => {
   const getAuthHeaders = () => {
@@ -232,6 +235,16 @@ export const useApi = () => {
           method: 'PATCH',
           body: JSON.stringify({ status }),
         }),
+    tickets: {
+      getAll: () => callApi(HELP_SERVICE_URL, 'tickets/all'),
+      create: (data: any) => callApi(HELP_SERVICE_URL, 'tickets', { method: 'POST', body: JSON.stringify(data) }),
+      respond: (id: string, response: string, status?: string) => callApi(HELP_SERVICE_URL, `tickets/${id}/respond`, { method: 'PUT', body: JSON.stringify({ response, status }) }),
+    },
+    articles: {
+      getAll: () => callApi(HELP_SERVICE_URL, 'faq'),
+      create: (data: any) => callApi(HELP_SERVICE_URL, 'faq', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => callApi(HELP_SERVICE_URL, `faq/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id: string) => callApi(HELP_SERVICE_URL, `faq/${id}`, { method: 'DELETE' }),
     },
   };
 };
