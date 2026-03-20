@@ -13,8 +13,6 @@ const categoryRoutes = require("./routes/categoryRoutes");
 
 const app = express();
 
-// TEST CI/CD - March 2026
-
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
