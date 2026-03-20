@@ -3,7 +3,6 @@ Library Management Microservice System
 Tech Stack
 
 - MERN
-- Kafka
 - Docker
 - MongoDB
 

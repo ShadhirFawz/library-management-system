@@ -122,15 +122,26 @@ export interface TicketMessage {
 
 export interface SupportTicket {
   _id: string;
-  userId: string;
   subject: string;
-  category: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
-  assignedTo: string | null;
-  messages: TicketMessage[];
+  description: string;
+  raisedBy: string;
+  status: 'open' | 'in_progress' | 'resolved';
+  adminResponse?: string | null;
+  respondedBy?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export const FAQ_CATEGORIES = ['borrowing', 'returning', 'account', 'ordering', 'general'] as const;
+
+export interface Article {
+  _id: string;
+  title: string;
+  content: string;
+  category?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface UserMembership {
@@ -241,6 +252,12 @@ export const mockSupportTickets: SupportTicket[] = [
     ],
     createdAt: '2025-03-16T14:00:00Z', updatedAt: '2025-03-16T14:00:00Z',
   },
+];
+
+export const mockArticles: Article[] = [
+  { _id: 'art1', title: 'How to renew books online', content: 'To renew books, go to My Borrowings and click renew...', category: 'Help', createdBy: 'usr2', createdAt: '2025-03-10T09:00:00Z' },
+  { _id: 'art2', title: 'Membership benefits explained', content: 'Premium members enjoy extended borrow limits...', category: 'Membership', createdBy: 'usr1', createdAt: '2025-02-20T08:30:00Z' },
+  { _id: 'art3', title: 'Library internet access', content: 'Free Wi-Fi is available at all branches...', category: 'Facilities', createdBy: 'usr2', createdAt: '2025-01-15T12:00:00Z' },
 ];
 
 export const mockUserMemberships: UserMembership[] = [

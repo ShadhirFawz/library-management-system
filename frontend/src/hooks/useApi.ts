@@ -229,19 +229,19 @@ export const useApi = () => {
         callApi("order-service", `fines/${id}/pay`, { method: "PATCH" }),
     },
     support: {
-      getAll: () => callApi("customer-care", "tickets"),
+      getAll: () => callApi("help-service", "tickets"),
       create: (data: any) =>
-        callApi("customer-care", "tickets", {
+        callApi("help-service", "tickets", {
           method: "POST",
           body: JSON.stringify(data),
         }),
       reply: (id: string, data: any) =>
-        callApi("customer-care", `tickets/${id}/reply`, {
+        callApi("help-service", `tickets/${id}/reply`, {
           method: "POST",
           body: JSON.stringify(data),
         }),
       updateStatus: (id: string, status: string) =>
-        callApi("customer-care", `tickets/${id}/status`, {
+        callApi("help-service", `tickets/${id}/status`, {
           method: "PATCH",
           body: JSON.stringify({ status }),
         }),

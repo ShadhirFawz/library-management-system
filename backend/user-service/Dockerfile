@@ -2,13 +2,15 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod
 
 COPY . .
 
 ENV NODE_ENV=production
 EXPOSE 5001
 
-CMD ["node","src/server.js"]
+CMD ["pnpm","start"]
 

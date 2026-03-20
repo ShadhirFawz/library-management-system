@@ -13,6 +13,8 @@ const categoryRoutes = require("./routes/categoryRoutes");
 
 const app = express();
 
+// TEST CI/CD - March 2026
+
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
@@ -50,7 +52,7 @@ app.use((err, _req, res, _next) => {
 
 const startServer = async () => {
   await connectDB();
-  const PORT = process.env.PORT || 5002;
+  const PORT = process.env.PORT || 80;
   app.listen(PORT, () => {
     console.log(`[book-catalog-service] Running on port ${PORT}`);
   });
