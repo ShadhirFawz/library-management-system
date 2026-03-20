@@ -3,7 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import StatusBadge from "@/components/StatusBadge";
-import { getAuthorName, getCategoryName, Book } from "@/data/mockData";
+import { Book } from "@/data/mockData";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useApi } from "@/hooks/useApi";
@@ -128,6 +128,18 @@ const BookCatalog = () => {
     }
   };
 
+  const getAuthorNames = (authorIds: string[]) => {
+    return authorIds
+      .map((id) => authors.find((a) => a._id === id)?.name || "Unknown")
+      .join(", ");
+  };
+
+  const getCategoryNames = (categoryIds: string[]) => {
+    return categoryIds
+      .map((id) => categories.find((c) => c._id === id)?.name || "Unknown")
+      .join(", ");
+  };
+
   const columns: ColumnDef<Book>[] = [
     { accessorKey: "title", header: "Title" },
     {
@@ -140,13 +152,12 @@ const BookCatalog = () => {
     {
       id: "authors",
       header: "Authors",
-      cell: ({ row }) => row.original.authorIds.map(getAuthorName).join(", "),
+      cell: ({ row }) => getAuthorNames(row.original.authorIds),
     },
     {
       id: "categories",
       header: "Categories",
-      cell: ({ row }) =>
-        row.original.categoryIds.map(getCategoryName).join(", "),
+      cell: ({ row }) => getCategoryNames(row.original.categoryIds),
     },
     { accessorKey: "publisher", header: "Publisher" },
     {
@@ -297,33 +308,55 @@ const BookCatalog = () => {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Authors</label>
-            <select
-              name="authors"
-              multiple
-              defaultValue={edit?.authorIds}
-              className="w-full border border-border px-3 py-2 rounded text-sm focus:outline-none focus:border-accent h-20"
-            >
-              {authors.map((a) => (
-                <option key={a._id} value={a._id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
+            <div className="border border-border rounded p-3 space-y-2 max-h-32 overflow-y-auto">
+              {authors.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No authors available
+                </p>
+              ) : (
+                authors.map((a) => (
+                  <label
+                    key={a._id}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      name="authors"
+                      value={a._id}
+                      defaultChecked={edit?.authorIds?.includes(a._id)}
+                      className="rounded border-border"
+                    />
+                    <span className="text-sm">{a.name}</span>
+                  </label>
+                ))
+              )}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Categories</label>
-            <select
-              name="categories"
-              multiple
-              defaultValue={edit?.categoryIds}
-              className="w-full border border-border px-3 py-2 rounded text-sm focus:outline-none focus:border-accent h-20"
-            >
-              {categories.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <div className="border border-border rounded p-3 space-y-2 max-h-32 overflow-y-auto">
+              {categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No categories available
+                </p>
+              ) : (
+                categories.map((c) => (
+                  <label
+                    key={c._id}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      name="categories"
+                      value={c._id}
+                      defaultChecked={edit?.categoryIds?.includes(c._id)}
+                      className="rounded border-border"
+                    />
+                    <span className="text-sm">{c.name}</span>
+                  </label>
+                ))
+              )}
+            </div>
           </div>
           <div className="col-span-2 flex justify-end gap-3">
             <button
