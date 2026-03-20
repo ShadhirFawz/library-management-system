@@ -92,11 +92,11 @@ router.patch(
   updateCopy,
 );
 
-// DELETE /api/books/copies/:copyId — admin only
+// DELETE /api/books/copies/:copyId — staff only
 router.delete(
   "/copies/:copyId",
   authenticate,
-  adminOnly,
+  staffOnly,
   [param("copyId").isMongoId().withMessage("Invalid copy ID")],
   validate,
   deleteCopy,
