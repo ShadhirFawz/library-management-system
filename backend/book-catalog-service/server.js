@@ -28,8 +28,8 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-app.use("/api/books", bookRoutes);
 app.use("/api/books", bookCopyRoutes);
+app.use("/api/books", bookRoutes);
 app.use("/api/authors", authorRoutes);
 app.use("/api/categories", categoryRoutes);
 

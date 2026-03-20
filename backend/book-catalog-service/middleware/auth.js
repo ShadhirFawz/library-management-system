@@ -11,6 +11,7 @@ const authenticate = (req, res, next) => {
 
   try {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("[auth] Authenticated user:", req.user);
     next();
   } catch {
     res.status(403).json({ error: "Invalid or expired token" });
@@ -27,7 +28,7 @@ const adminOnly = (req, res, next) => {
 
 // Admins and librarians — must come after authenticate.
 const staffOnly = (req, res, next) => {
-  const staffRoles = ["admin", "librarian"];
+  const staffRoles = ["admin", "LIBRARIAN"];
   if (!staffRoles.includes(req.user?.role)) {
     return res.status(403).json({ error: "Staff access only" });
   }
