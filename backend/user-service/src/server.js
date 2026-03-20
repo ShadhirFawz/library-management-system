@@ -6,6 +6,7 @@ const userRoutes = require("./routes/userRoutes");
 const healthRoutes = require("./routes/healthRoutes");
 const errorHandler = require("./middleware/errorHandler");
 const membershipRoutes = require("./routes/membershipRoutes");
+const userManagementRoutes = require("./routes/userManagementRoutes");
 const swaggerUi = require("swagger-ui-express");
 const specs = require("./config/swagger");
 const config = require("./config");
@@ -32,6 +33,7 @@ app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/memberships", membershipRoutes);
+app.use("/api/manage-users", userManagementRoutes);
 
 app.use(errorHandler);
 
