@@ -1,4 +1,10 @@
 const userService = require("../services/userService");
+const User = require("../models/User");
+
+// Verify User model is loaded
+if (!User) {
+  console.error("ERROR: User model failed to load. Check ../models/User.js file exists and exports correctly");
+}
 
 exports.getProfile = async (req, res, next) => {
 
@@ -34,6 +40,13 @@ exports.updateProfile = async (req, res, next) => {
 exports.getAllUsers = async (req, res, next) => {
 
   try {
+    
+    if (!User || typeof User.find !== 'function') {
+      return res.status(500).json({ 
+        message: "User model is not properly initialized",
+        error: "User model reference is undefined or corrupted"
+      });
+    }
 
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
