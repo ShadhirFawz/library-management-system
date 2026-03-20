@@ -91,9 +91,36 @@ const markCopyAsReturned = async (bookCopyId, authToken) => {
   }
 };
 
+// fetches available copies for a book — used when approving reservations
+const getAvailableCopiesForBook = async (bookId, authToken) => {
+  try {
+    const { data } = await axios.get(
+      `${BASE_URL()}/api/books/${bookId}/copies`,
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+        params: { status: "available" },
+        timeout: 5000,
+      },
+    );
+    // data may be { copies: [...] } or an array directly
+    return Array.isArray(data) ? data : data.copies || [];
+  } catch (err) {
+    const status = err.response?.status;
+    const message = err.response?.data?.error || err.message;
+
+    if (status === 404) {
+      throw Object.assign(new Error("Book not found"), { statusCode: 404 });
+    }
+    throw Object.assign(new Error(`Book Service unavailable: ${message}`), {
+      statusCode: 503,
+    });
+  }
+};
+
 module.exports = {
   getBookCopyById,
   getBookById,
   markCopyAsBorrowed,
   markCopyAsReturned,
+  getAvailableCopiesForBook,
 };

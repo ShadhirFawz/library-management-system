@@ -11,6 +11,7 @@ const BrowseCatalog = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reserving, setReserving] = useState(false);
   const { toast } = useToast();
   const api = useApi();
 
@@ -50,6 +51,27 @@ const BrowseCatalog = () => {
     };
     fetchBooks();
   }, []);
+
+  const handleReserve = async () => {
+    if (!selected) return;
+    try {
+      setReserving(true);
+      const result = await api.reservations.create({ bookId: selected._id });
+      toast({
+        title: "Reservation placed!",
+        description: `You are #${result.queuePosition} in the queue`
+      });
+      setSelected(null);
+    } catch (err: any) {
+      toast({
+        title: "Reservation failed",
+        description: err.message,
+        variant: "destructive"
+      });
+    } finally {
+      setReserving(false);
+    }
+  };
 
   const filtered = books.filter(
     (b) =>
@@ -160,22 +182,11 @@ const BrowseCatalog = () => {
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => {
-                  toast({ title: "Reservation requested" });
-                  setSelected(null);
-                }}
-                className="px-4 py-2 bg-accent text-accent-foreground rounded text-sm font-medium hover:opacity-90 transition-opacity"
+                onClick={handleReserve}
+                disabled={reserving}
+                className="px-4 py-2 bg-accent text-accent-foreground rounded text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                Reserve
-              </button>
-              <button
-                onClick={() => {
-                  toast({ title: "Borrow request submitted" });
-                  setSelected(null);
-                }}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:opacity-90 transition-opacity"
-              >
-                Request Borrow
+                {reserving ? "Reserving..." : "Reserve"}
               </button>
             </div>
           </div>
