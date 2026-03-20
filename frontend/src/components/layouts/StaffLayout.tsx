@@ -19,11 +19,13 @@ const menuItems = [
   { label: 'Reservations', icon: Calendar, path: '/staff/reservations', roles: ['ADMIN', 'LIBRARIAN'] },
   { label: 'Fines', icon: AlertCircle, path: '/staff/fines', roles: ['ADMIN', 'LIBRARIAN'] },
   { label: 'Support Tickets', icon: LifeBuoy, path: '/staff/tickets', roles: ['ADMIN', 'LIBRARIAN'] },
+  { label: 'FAQ', icon: LifeBuoy, path: '/staff/articles', roles: ['ADMIN', 'LIBRARIAN'] },
 ];
 
 const StaffLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [avatarImageError, setAvatarImageError] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -88,8 +90,17 @@ const StaffLayout = () => {
                 <p className="text-sm font-semibold">{user?.fullName}</p>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">{user?.role}</p>
               </div>
-              <div className="h-10 w-10 bg-accent rounded flex items-center justify-center text-accent-foreground font-bold text-sm">
-                {user?.fullName?.split(' ').map(n => n[0]).join('')}
+              <div className="h-10 w-10 bg-accent rounded flex items-center justify-center text-accent-foreground font-bold text-sm overflow-hidden">
+                {user?.profileImage && !avatarImageError ? (
+                  <img
+                    src={user.profileImage}
+                    alt={user?.fullName || 'Profile'}
+                    className="h-full w-full object-cover"
+                    onError={() => setAvatarImageError(true)}
+                  />
+                ) : (
+                  user?.fullName?.split(' ').map(n => n[0]).join('') || 'U'
+                )}
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
             </button>

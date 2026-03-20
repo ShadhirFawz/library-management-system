@@ -4,6 +4,7 @@ const { body, param, query } = require("express-validator");
 const { authenticate, staffOnly, adminOnly } = require("../middleware/auth");
 const validate = require("../middleware/validate");
 const {
+  getAllCopies,
   addCopy,
   getCopiesByBook,
   getCopyById,
@@ -14,6 +15,20 @@ const {
 } = require("../controllers/bookCopyController");
 
 const router = express.Router();
+
+// GET /api/books/copies — list all book copies across all books (for staff inventory)
+router.get(
+  "/copies",
+  authenticate,
+  staffOnly,
+  [
+    query("status")
+      .optional()
+      .isIn(["available", "borrowed", "lost", "damaged"]),
+  ],
+  validate,
+  getAllCopies,
+);
 
 // POST /api/books/:bookId/copies — add a new physical copy to a book
 router.post(
@@ -77,11 +92,11 @@ router.patch(
   updateCopy,
 );
 
-// DELETE /api/books/copies/:copyId — admin only
+// DELETE /api/books/copies/:copyId — staff only
 router.delete(
   "/copies/:copyId",
   authenticate,
-  adminOnly,
+  staffOnly,
   [param("copyId").isMongoId().withMessage("Invalid copy ID")],
   validate,
   deleteCopy,

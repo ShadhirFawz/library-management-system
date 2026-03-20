@@ -1,6 +1,6 @@
 node_modules
-npm-debug.log*
-*.log
+npm-debug.log
 .env
+.git
 .env.*
-
+*.log

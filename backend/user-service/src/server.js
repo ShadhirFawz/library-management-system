@@ -1,12 +1,26 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const jwt = require("jsonwebtoken");
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
+const healthRoutes = require("./routes/healthRoutes");
+const errorHandler = require("./middleware/errorHandler");
+const membershipRoutes = require("./routes/membershipRoutes");
+const userManagementRoutes = require("./routes/userManagementRoutes");
+const swaggerUi = require("swagger-ui-express");
+const specs = require("./config/swagger");
+const config = require("./config");
+
+const connectDB = require("./config/db");
 
 const app = express();
 
+connectDB();
+
 app.use(cors());
 app.use(express.json());
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.get("/health", (req, res) => {
   res.json({
@@ -15,20 +29,15 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Used by other microservices (e.g., help-service) to validate JWT and read user role
-app.get("/api/auth/verify", (req, res) => {
-  const token = req.headers["authorization"]?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "Token required" });
+app.use("/api/health", healthRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/memberships", membershipRoutes);
+app.use("/api/manage-users", userManagementRoutes);
 
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    return res.json({ user: payload });
-  } catch {
-    return res.status(403).json({ error: "Invalid or expired token" });
-  }
-});
+app.use(errorHandler);
 
-const PORT = process.env.PORT || 5001;
+const PORT = config.port;
 
 app.listen(PORT, () => {
   console.log(`User Service running on port ${PORT}`);

@@ -27,7 +27,7 @@ const adminOnly = (req, res, next) => {
 
 // Admins and librarians — must come after authenticate.
 const staffOnly = (req, res, next) => {
-  const staffRoles = ["admin", "librarian"];
+  const staffRoles = ["admin", "LIBRARIAN"];
   if (!staffRoles.includes(req.user?.role)) {
     return res.status(403).json({ error: "Staff access only" });
   }

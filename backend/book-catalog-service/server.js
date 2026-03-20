@@ -26,8 +26,8 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-app.use("/api/books", bookRoutes);
 app.use("/api/books", bookCopyRoutes);
+app.use("/api/books", bookRoutes);
 app.use("/api/authors", authorRoutes);
 app.use("/api/categories", categoryRoutes);
 
@@ -50,7 +50,7 @@ app.use((err, _req, res, _next) => {
 
 const startServer = async () => {
   await connectDB();
-  const PORT = process.env.PORT || 5002;
+  const PORT = process.env.PORT || 80;
   app.listen(PORT, () => {
     console.log(`[book-catalog-service] Running on port ${PORT}`);
   });
