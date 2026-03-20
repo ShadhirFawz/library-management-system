@@ -104,7 +104,7 @@ export const useApi = () => {
         }),
       update: (id: string, data: any) =>
         callApi("user-service", `users/${id}`, {
-          method: "PUT",
+          method: "PATCH",
           body: JSON.stringify(data),
         }),
       delete: (id: string) =>
@@ -121,7 +121,7 @@ export const useApi = () => {
         }),
       update: (id: string, data: any) =>
         callApi("user-service", `memberships/${id}`, {
-          method: "PUT",
+          method: "PATCH",
           body: JSON.stringify(data),
         }),
       delete: (id: string) =>
@@ -146,7 +146,7 @@ export const useApi = () => {
         }),
       update: (id: string, data: any) =>
         callApi("book-catalog", `books/${id}`, {
-          method: "PUT",
+          method: "PATCH",
           body: JSON.stringify(data),
         }),
       delete: (id: string) =>
@@ -161,7 +161,7 @@ export const useApi = () => {
         }),
       update: (id: string, data: any) =>
         callApi("book-catalog", `authors/${id}`, {
-          method: "PUT",
+          method: "PATCH",
           body: JSON.stringify(data),
         }),
       delete: (id: string) =>
@@ -176,7 +176,7 @@ export const useApi = () => {
         }),
       update: (id: string, data: any) =>
         callApi("book-catalog", `categories/${id}`, {
-          method: "PUT",
+          method: "PATCH",
           body: JSON.stringify(data),
         }),
       delete: (id: string) =>
@@ -185,14 +185,22 @@ export const useApi = () => {
     inventory: {
       getAll: () => callApi("book-catalog", "books/copies"),
       create: (data: any) =>
-        callApi("book-catalog", "book-copies", {
+        callApi("book-catalog", `books/${data.bookId}/copies`, {
           method: "POST",
-          body: JSON.stringify(data),
+          body: JSON.stringify({
+            barcode: data.barcode,
+            location: data.location,
+            condition: data.condition,
+          }),
         }),
       update: (id: string, data: any) =>
-        callApi("book-catalog", `book-copies/${id}`, {
-          method: "PUT",
+        callApi("book-catalog", `books/copies/${id}`, {
+          method: "PATCH",
           body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        callApi("book-catalog", `books/copies/${id}`, {
+          method: "DELETE",
         }),
     },
     orders: {
@@ -268,7 +276,7 @@ export const useApi = () => {
         }),
       update: (id: string, data: any) =>
         callApi("help-service", `faq/${id}`, {
-          method: "PUT",
+          method: "PATCH",
           body: JSON.stringify(data),
         }),
       delete: (id: string) =>
