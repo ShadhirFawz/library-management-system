@@ -2,7 +2,7 @@
 // API Hook — Real backend integration
 // ============================
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const USER_SERVICE_URL = 'http://localhost:5001';
 
 export const useApi = () => {
   const getAuthHeaders = () => {
@@ -28,7 +28,7 @@ export const useApi = () => {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<any> => {
-    const url = `${API_BASE_URL}/api/${service}/${endpoint}`;
+    const url = `${USER_SERVICE_URL}/api/${service}/${endpoint}`;
     const headers = getAuthHeaders();
     const finalOptions: RequestInit = {
       ...options,
@@ -63,7 +63,7 @@ export const useApi = () => {
   return {
     auth: {
       login: (email: string, password: string) =>
-        fetch(`${API_BASE_URL}/api/auth/login`, {
+        fetch(`${USER_SERVICE_URL}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
@@ -72,7 +72,7 @@ export const useApi = () => {
           return res.json();
         }),
       register: (data: any) =>
-        fetch(`${API_BASE_URL}/api/auth/register`, {
+        fetch(`${USER_SERVICE_URL}/api/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),

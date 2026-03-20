@@ -22,7 +22,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 // Backend API URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 const USER_SERVICE_URL = `${API_BASE_URL}/api`;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
