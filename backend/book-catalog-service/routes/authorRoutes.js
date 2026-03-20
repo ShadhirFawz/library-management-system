@@ -66,11 +66,11 @@ router.patch(
   updateAuthor,
 );
 
-// DELETE /api/authors/:id — admin only
+// DELETE /api/authors/:id — staff only
 router.delete(
   "/:id",
   authenticate,
-  adminOnly,
+  staffOnly,
   [param("id").isMongoId().withMessage("Invalid author ID")],
   validate,
   deleteAuthor,

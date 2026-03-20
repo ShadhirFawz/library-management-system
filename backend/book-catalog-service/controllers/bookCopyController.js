@@ -2,6 +2,25 @@ const BookCopy = require("../models/BookCopy");
 const Book = require("../models/Book");
 const { syncCopyCounts } = require("../services/catalogService");
 
+// Get all book copies across all books (for staff inventory view)
+const getAllCopies = async (req, res) => {
+  const { status } = req.query;
+
+  try {
+    const filter = {};
+    if (status) filter.status = status;
+
+    const bookCopies = await BookCopy.find(filter)
+      .populate("bookId", "title")
+      .sort({ createdAt: -1 });
+
+    res.json({ bookCopies });
+  } catch (err) {
+    console.error("[bookCopyController] getAllCopies error:", err);
+    res.status(500).json({ error: "Failed to fetch book copies" });
+  }
+};
+
 const addCopy = async (req, res) => {
   const { bookId } = req.params;
   const { barcode, location, condition } = req.body;
@@ -145,6 +164,7 @@ const markCopyAsReturned = async (req, res) => {
 };
 
 module.exports = {
+  getAllCopies,
   addCopy,
   getCopiesByBook,
   getCopyById,

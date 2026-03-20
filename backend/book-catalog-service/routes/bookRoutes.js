@@ -88,11 +88,11 @@ router.patch(
   updateBook,
 );
 
-// DELETE /api/books/:id — admin only
+// DELETE /api/books/:id — staff only
 router.delete(
   "/:id",
   authenticate,
-  adminOnly,
+  staffOnly,
   [param("id").isMongoId().withMessage("Invalid book ID")],
   validate,
   deleteBook,
