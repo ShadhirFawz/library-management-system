@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, BookOpen, User, CreditCard,
@@ -6,6 +6,7 @@ import {
   LogOut, Menu, X, Search, ChevronDown
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useApi } from '@/hooks/useApi';
 
 const memberMenu = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/member/dashboard' },
@@ -21,10 +22,44 @@ const memberMenu = [
 const MemberLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const [avatarImageError, setAvatarImageError] = useState(false);
+  const { user, logout, updateCurrentUser } = useAuth();
+  const api = useApi();
   const navigate = useNavigate();
 
   const handleLogout = () => { logout(); navigate('/login'); };
+
+  useEffect(() => {
+    setAvatarImageError(false);
+  }, [user?.profileImage]);
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    let mounted = true;
+
+    const syncProfile = async () => {
+      try {
+        const profile = await api.users.getProfile();
+        if (!mounted || !profile) return;
+
+        updateCurrentUser({
+          fullName: profile.fullName || user.fullName,
+          email: profile.email || user.email,
+          profileImage: profile.profileImage || '',
+        });
+      } catch {
+        // Ignore profile sync errors in layout
+      }
+    };
+
+    syncProfile();
+
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?._id]);
 
   return (
     <div className="flex min-h-screen bg-background font-sans text-foreground">
@@ -80,10 +115,19 @@ const MemberLayout = () => {
             <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-semibold">{user?.fullName}</p>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Member</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{user?.role}</p>
               </div>
-              <div className="h-10 w-10 bg-accent rounded flex items-center justify-center text-accent-foreground font-bold text-sm">
-                {user?.fullName?.split(' ').map(n => n[0]).join('')}
+              <div className="h-10 w-10 bg-accent rounded flex items-center justify-center text-accent-foreground font-bold text-sm overflow-hidden">
+                {user?.profileImage && !avatarImageError ? (
+                  <img
+                    src={user.profileImage}
+                    alt={user?.fullName || 'Profile'}
+                    className="h-full w-full object-cover"
+                    onError={() => setAvatarImageError(true)}
+                  />
+                ) : (
+                  user?.fullName?.split(' ').map(n => n[0]).join('') || 'U'
+                )}
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
             </button>

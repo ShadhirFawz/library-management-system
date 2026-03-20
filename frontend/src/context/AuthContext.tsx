@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 interface AuthUser {
   _id: string;
   fullName: string;
   role: 'ADMIN' | 'LIBRARIAN' | 'MEMBER';
   email: string;
+  profileImage?: string;
   membershipId: string | null;
 }
 
@@ -14,6 +14,7 @@ interface AuthContextType {
   token: string | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (data: any) => Promise<{ success: boolean; error?: string }>;
+  updateCurrentUser: (updates: Partial<AuthUser>) => void;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -71,6 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         fullName: backendUser.fullName,
         role: backendUser.role || 'MEMBER',
         email: backendUser.email,
+        profileImage: backendUser.profileImage || '',
         membershipId: backendUser.membershipId || null,
       };
 
@@ -117,6 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         fullName: backendUser.fullName,
         role: 'MEMBER',
         email: backendUser.email,
+        profileImage: backendUser.profileImage || '',
         membershipId: null,
       };
 
@@ -137,6 +140,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateCurrentUser = (updates: Partial<AuthUser>) => {
+    if (!user) return;
+
+    const mergedUser: AuthUser = {
+      ...user,
+      ...updates,
+    };
+
+    setUser(mergedUser);
+
+    const stored = localStorage.getItem('libramanage_auth');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        localStorage.setItem(
+          'libramanage_auth',
+          JSON.stringify({
+            ...parsed,
+            user: mergedUser,
+          })
+        );
+      } catch (error) {
+        console.error('Failed to update stored auth user:', error);
+      }
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('libramanage_auth');
     setUser(null);
@@ -144,7 +174,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isAuthenticated: !!user, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, register, updateCurrentUser, logout, isAuthenticated: !!user, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
