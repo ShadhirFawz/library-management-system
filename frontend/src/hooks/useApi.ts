@@ -136,6 +136,24 @@ export const useApi = () => {
           body: JSON.stringify(data),
         }),
     },
+    manageUsers: {
+      getAll: () => callApi('manage-users', ''),
+      getById: (id: string) => callApi('manage-users', id),
+      create: (data: any) =>
+        callApi('manage-users', '', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: any) =>
+        callApi('manage-users', id, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        callApi('manage-users', id, { method: 'DELETE' }),
+      promote: (id: string) =>
+        callApi('manage-users', `${id}/promote`, { method: 'PUT' }),
+    },
     books: {
       getAll: () => callApi("book-catalog", "books"),
       getById: (id: string) => callApi("book-catalog", `books/${id}`),
