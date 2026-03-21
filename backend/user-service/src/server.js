@@ -25,7 +25,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.get("/health", (req, res) => {
   res.json({
     service: "User Service",
-    status: "running",
+    status: "running successfully",
   });
 });
 
