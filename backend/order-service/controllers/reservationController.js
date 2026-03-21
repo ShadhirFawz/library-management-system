@@ -1,5 +1,8 @@
 const Reservation = require("../models/Reservation");
+const Order = require("../models/Order");
 const bookService = require("../services/bookService");
+const userService = require("../services/userService");
+const { calculateDueDate } = require("../services/fineService");
 
 const extractToken = (req) => req.headers.authorization?.split(" ")[1];
 
@@ -172,10 +175,143 @@ const getReservationsForBook = async (req, res) => {
   }
 };
 
+// staff approves a reservation → creates a borrow order
+const approveReservation = async (req, res) => {
+  const token = extractToken(req);
+  const { id } = req.params;
+  const { bookCopyId } = req.body; // optionally specify which copy
+
+  try {
+    const reservation = await Reservation.findById(id);
+    if (!reservation) {
+      return res.status(404).json({ error: "Reservation not found" });
+    }
+
+    if (!["pending", "notified"].includes(reservation.status)) {
+      return res.status(400).json({
+        error: `Cannot approve reservation with status '${reservation.status}'`,
+      });
+    }
+
+    // find an available copy — use specified copy or pick first available
+    let copy;
+    if (bookCopyId) {
+      copy = await bookService.getBookCopyById(bookCopyId, token);
+      if (!copy.isAvailable) {
+        return res.status(400).json({
+          error: "Specified book copy is not available",
+        });
+      }
+    } else {
+      const availableCopies = await bookService.getAvailableCopiesForBook(
+        reservation.bookId,
+        token,
+      );
+      if (!availableCopies.length) {
+        return res.status(400).json({
+          error: "No available copies for this book",
+        });
+      }
+      copy = availableCopies[0];
+    }
+
+    // check member's borrow limits
+    const user = await userService.getUserById(reservation.userId, token);
+    const membership = user.membership || {};
+    const borrowLimit = membership.borrowLimit ?? 5;
+    const activeBorrowCount = membership.activeBorrowCount ?? 0;
+    const borrowDurationDays =
+      membership.borrowDurationDays ??
+      parseInt(process.env.DEFAULT_BORROW_DAYS, 10) ??
+      14;
+
+    if (activeBorrowCount >= borrowLimit) {
+      return res.status(400).json({
+        error: `Member has reached borrow limit (${activeBorrowCount}/${borrowLimit})`,
+      });
+    }
+
+    const borrowDate = new Date();
+    const dueDate = calculateDueDate(borrowDate, borrowDurationDays);
+
+    // create the order
+    const order = await Order.create({
+      userId: reservation.userId,
+      bookCopyId: copy._id || copy.id,
+      bookId: reservation.bookId,
+      borrowDate,
+      dueDate,
+      status: "borrowed",
+    });
+
+    // mark copy as borrowed
+    try {
+      await bookService.markCopyAsBorrowed(copy._id || copy.id, token);
+    } catch (bookErr) {
+      await Order.findByIdAndDelete(order._id);
+      return res.status(bookErr.statusCode || 503).json({
+        error: bookErr.message,
+      });
+    }
+
+    // update user's borrow count (best effort)
+    await userService.updateBorrowCount(reservation.userId, +1, token);
+
+    // mark reservation as fulfilled
+    reservation.status = "fulfilled";
+    await reservation.save();
+
+    return res.json({
+      message: "Reservation approved and book issued",
+      reservation,
+      order,
+    });
+  } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error("[reservationController] approveReservation error:", err);
+    res.status(500).json({ error: "Failed to approve reservation" });
+  }
+};
+
+// staff rejects a reservation
+const rejectReservation = async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  try {
+    const reservation = await Reservation.findById(id);
+    if (!reservation) {
+      return res.status(404).json({ error: "Reservation not found" });
+    }
+
+    if (!["pending", "notified"].includes(reservation.status)) {
+      return res.status(400).json({
+        error: `Cannot reject reservation with status '${reservation.status}'`,
+      });
+    }
+
+    reservation.status = "cancelled";
+    await reservation.save();
+
+    res.json({
+      message: "Reservation rejected",
+      reservation,
+      ...(reason && { reason }),
+    });
+  } catch (err) {
+    console.error("[reservationController] rejectReservation error:", err);
+    res.status(500).json({ error: "Failed to reject reservation" });
+  }
+};
+
 module.exports = {
   createReservation,
   cancelReservation,
   getMyReservations,
   getAllReservations,
   getReservationsForBook,
+  approveReservation,
+  rejectReservation,
 };

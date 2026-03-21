@@ -4,6 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const swaggerUi = require("swagger-ui-express");
+const swaggerJSDoc = require("swagger-jsdoc");
 
 const connectDB = require("./config/db");
 const orderRoutes = require("./routes/orderRoutes");
@@ -24,6 +26,92 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use(limiter);
+
+// Swagger setup
+const swaggerSpec = swaggerJSDoc({
+  definition: {
+    openapi: "3.0.3",
+    info: {
+      title: "Library Order Service API",
+      version: "1.0.0",
+      description:
+        "Order Service for Library Management System - handles borrowing, returns, reservations, and fines",
+    },
+    servers: [{ url: "/" }],
+    components: {
+      securitySchemes: {
+        bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+      },
+      schemas: {
+        Order: {
+          type: "object",
+          properties: {
+            _id: { type: "string", description: "Order ID" },
+            userId: { type: "string", description: "User ID" },
+            bookCopyId: { type: "string", description: "Book copy ID" },
+            bookId: { type: "string", description: "Book ID" },
+            borrowDate: { type: "string", format: "date-time" },
+            dueDate: { type: "string", format: "date-time" },
+            returnDate: { type: "string", format: "date-time", nullable: true },
+            status: {
+              type: "string",
+              enum: ["borrowed", "returned", "overdue"],
+            },
+            fineAmount: { type: "number", default: 0 },
+          },
+        },
+        Reservation: {
+          type: "object",
+          properties: {
+            _id: { type: "string", description: "Reservation ID" },
+            userId: { type: "string", description: "User ID" },
+            bookId: { type: "string", description: "Book ID" },
+            reservationDate: { type: "string", format: "date-time" },
+            status: {
+              type: "string",
+              enum: ["pending", "notified", "fulfilled", "cancelled", "expired"],
+            },
+            notifiedAt: {
+              type: "string",
+              format: "date-time",
+              nullable: true,
+            },
+          },
+        },
+        Fine: {
+          type: "object",
+          properties: {
+            _id: { type: "string", description: "Fine ID" },
+            orderId: { type: "string", description: "Associated order ID" },
+            userId: { type: "string", description: "User ID" },
+            amount: { type: "number", description: "Fine amount" },
+            reason: { type: "string", description: "Reason for fine" },
+            isPaid: { type: "boolean", default: false },
+            paidAt: { type: "string", format: "date-time", nullable: true },
+          },
+        },
+        Pagination: {
+          type: "object",
+          properties: {
+            total: { type: "integer" },
+            page: { type: "integer" },
+            limit: { type: "integer" },
+            pages: { type: "integer" },
+          },
+        },
+        Error: {
+          type: "object",
+          properties: {
+            error: { type: "string" },
+          },
+        },
+      },
+    },
+  },
+  apis: ["./routes/*.js"],
+});
+
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/orders", orderRoutes);
 app.use("/api/reservations", reservationRoutes);
