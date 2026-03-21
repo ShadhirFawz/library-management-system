@@ -126,4 +126,40 @@ router.get("/:id", authenticate, authorize("ADMIN"), userController.getUserById)
  */
 router.put("/:id/role", authenticate, authorize("ADMIN"), userController.updateUserRole);
 
+/**
+ * @swagger
+ * /api/users/{id}/borrow-count:
+ *   patch:
+ *     summary: Update active borrow count
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               increment:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Borrow count updated successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: User not found
+ */
+router.patch("/:id/borrow-count", authenticate, userController.updateBorrowCount);
+
 module.exports = router;

@@ -150,21 +150,24 @@ export const useApi = () => {
         }),
     },
     manageUsers: {
-      getAll: () => callApi("manage-users", ""),
-      getById: (id: string) => callApi("manage-users", id),
-      create: (data: any) =>
-        callApi("manage-users", "", {
+      getAll: () => callApi("user-service", "manage-users"),
+      getById: (id: string) => callApi("user-service", `manage-users/${id}`),
+      create: (data: Record<string, unknown>) =>
+        callApi("user-service", "manage-users", {
           method: "POST",
           body: JSON.stringify(data),
         }),
-      update: (id: string, data: any) =>
-        callApi("manage-users", id, {
+      update: (id: string, data: Record<string, unknown>) =>
+        callApi("user-service", `manage-users/${id}`, {
           method: "PUT",
           body: JSON.stringify(data),
         }),
-      delete: (id: string) => callApi("manage-users", id, { method: "DELETE" }),
+      delete: (id: string) =>
+        callApi("user-service", `manage-users/${id}`, { method: "DELETE" }),
       promote: (id: string) =>
-        callApi("manage-users", `${id}/promote`, { method: "PUT" }),
+        callApi("user-service", `manage-users/${id}/promote`, {
+          method: "PUT",
+        }),
     },
     books: {
       getAll: () => callApi("book-catalog", "books"),

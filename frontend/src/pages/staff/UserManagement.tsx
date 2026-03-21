@@ -129,11 +129,10 @@ const UserManagement = () => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
-    const userData = {
+    const userData: Record<string, unknown> = {
       fullName: formData.get('fullName'),
       email: formData.get('email'),
       phone: formData.get('phone'),
-      role: formData.get('role'),
       status: formData.get('status'),
       address: {
         street: formData.get('street'),
@@ -143,6 +142,10 @@ const UserManagement = () => {
         country: formData.get('country'),
       },
     };
+
+    if (currentUser?.role === 'ADMIN') {
+      userData.role = formData.get('role');
+    }
 
     try {
       setSubmitting(true);
