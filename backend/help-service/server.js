@@ -36,7 +36,7 @@ function createApp() {
   app.use(express.json());
 
   app.get("/health", (req, res) => {
-    res.json({ service: "Help Service", status: "running" });
+    res.json({ service: "Help Service", status: "running successfully" });
   });
 
   const swaggerSpec = swaggerJSDoc({
