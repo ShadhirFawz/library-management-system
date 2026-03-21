@@ -13,8 +13,6 @@ const categoryRoutes = require("./routes/categoryRoutes");
 
 const app = express();
 
-//test comment to trigger redeploy
-
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
@@ -36,7 +34,7 @@ app.use("/api/categories", categoryRoutes);
 app.get("/health", (_req, res) => {
   res.json({
     status: "OK",
-    service: "book-catalog-service",
+    service: "book-catalog-service v1.0",
     timestamp: new Date().toISOString(),
   });
 });
