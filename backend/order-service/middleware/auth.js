@@ -4,7 +4,7 @@ const normalizeRole = (role) =>
   typeof role === "string" ? role.toUpperCase() : "";
 
 // pulls the Bearer token off the Authorization header and puts the decoded
-// payload on req.user so controllers can read userId and role
+// payload on req.user so controllers can read id and role
 const authenticate = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
 
