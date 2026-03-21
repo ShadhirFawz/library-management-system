@@ -17,6 +17,44 @@ export const useApi = () => {
       'Authorization': `Bearer ${getToken()}`,
       ...options.headers,
     };
+<<<<<<< Updated upstream
+=======
+    if (stored) {
+      try {
+        const { token } = JSON.parse(stored);
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      } catch (error) {
+        console.error('Failed to read auth token:', error);
+      }
+    }
+    return headers;
+  };
+
+  const callApi = async (
+    service: string,
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<any> => {
+    const cleanEndpoint = endpoint.replace(/^\/+/, '');
+    let url: string;
+    if (/^https?:\/\//.test(service)) {
+      const base = service.replace(/\/+$/, '');
+      url = `${base}/api/${cleanEndpoint}`;
+    } else {
+      url = `${USER_SERVICE_URL}/api/${service}/${cleanEndpoint}`;
+    }
+    const headers = getAuthHeaders();
+    const finalOptions: RequestInit = {
+      ...options,
+      headers: {
+        ...headers,
+        ...(options.headers || {}),
+      },
+    };
+
+>>>>>>> Stashed changes
     try {
       const resp = await fetch(url, { ...options, headers });
       if (!resp.ok) throw new Error(`API Error: ${resp.status}`);
@@ -85,6 +123,27 @@ export const useApi = () => {
       getAll: () => callApi('order-service', 'fines'),
       markPaid: (id: string) => callApi('order-service', `fines/${id}/pay`, { method: 'PATCH' }),
     },
+<<<<<<< Updated upstream
+=======
+    support: {
+      getAll: () => callApi('customer-care', 'tickets'),
+      create: (data: any) =>
+        callApi('customer-care', 'tickets', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      reply: (id: string, data: any) =>
+        callApi('customer-care', `tickets/${id}/reply`, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      updateStatus: (id: string, status: string) =>
+        callApi('customer-care', `tickets/${id}/status`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status }),
+        }),
+    },
+>>>>>>> Stashed changes
     tickets: {
       getAll: () => callApi(HELP_SERVICE_URL, 'tickets/all'),
       create: (data: any) => callApi(HELP_SERVICE_URL, 'tickets', { method: 'POST', body: JSON.stringify(data) }),
