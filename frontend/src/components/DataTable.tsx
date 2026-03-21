@@ -5,9 +5,11 @@ import {
   SortingState, ColumnDef,
 } from '@tanstack/react-table';
 import { ChevronUp, ChevronDown, Search } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface DataTableProps<T> {
-  columns: ColumnDef<T, any>[];
+  columns: ColumnDef<T, unknown>[];
   data: T[];
   title: string;
   searchPlaceholder?: string;
@@ -30,6 +32,91 @@ export function DataTable<T>({ columns, data, title, searchPlaceholder = 'Search
     initialState: { pagination: { pageSize: 10 } },
   });
 
+  const exportColumns = useMemo(
+    () =>
+      table
+        .getAllLeafColumns()
+        .filter((column) => column.getIsVisible() && column.id !== 'actions'),
+    [table],
+  );
+
+  const csvFileName = useMemo(
+    () => `${title.toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/(^-|-$)/g, '') || 'table-data'}.csv`,
+    [title],
+  );
+
+  const pdfFileName = useMemo(
+    () => `${title.toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/(^-|-$)/g, '') || 'table-data'}.pdf`,
+    [title],
+  );
+
+  const getColumnHeader = (column: (typeof exportColumns)[number]) => {
+    const header = column.columnDef.header;
+
+    if (typeof header === 'string') {
+      return header;
+    }
+
+    return column.id;
+  };
+
+  const getExportRows = () =>
+    table.getFilteredRowModel().rows.map((row) =>
+      exportColumns.map((column) => {
+        const value = row.getValue(column.id);
+
+        if (value === null || value === undefined) {
+          return '';
+        }
+
+        return String(value);
+      }),
+    );
+
+  const escapeCsv = (value: string) => {
+    const safe = value.replace(/"/g, '""');
+    return /[",\n]/.test(safe) ? `"${safe}"` : safe;
+  };
+
+  const handleExportCsv = () => {
+    const headers = exportColumns.map(getColumnHeader);
+    const rows = getExportRows();
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => escapeCsv(cell)).join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', csvFileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportPdf = () => {
+    const headers = exportColumns.map(getColumnHeader);
+    const rows = getExportRows();
+
+    const doc = new jsPDF({ orientation: 'landscape' });
+    doc.setFontSize(14);
+    doc.text(title, 14, 14);
+
+    autoTable(doc, {
+      head: [headers],
+      body: rows,
+      startY: 20,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [41, 128, 185] },
+      margin: { left: 10, right: 10 },
+    });
+
+    doc.save(pdfFileName);
+  };
+
   return (
     <div className="bg-card border border-border rounded overflow-hidden">
       <div className="px-4 lg:px-6 py-4 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -45,8 +132,17 @@ export function DataTable<T>({ columns, data, title, searchPlaceholder = 'Search
               className="w-full sm:w-64 bg-background border border-border pl-10 pr-4 py-1.5 text-sm rounded focus:outline-none focus:border-accent"
             />
           </div>
-          <button className="px-3 py-1.5 bg-background border border-border text-sm font-medium hover:bg-muted transition-colors rounded whitespace-nowrap">
+          <button
+            onClick={handleExportCsv}
+            className="px-3 py-1.5 bg-background border border-border text-sm font-medium hover:bg-muted transition-colors rounded whitespace-nowrap"
+          >
             Export CSV
+          </button>
+          <button
+            onClick={handleExportPdf}
+            className="px-3 py-1.5 bg-background border border-border text-sm font-medium hover:bg-muted transition-colors rounded whitespace-nowrap"
+          >
+            Export PDF
           </button>
         </div>
       </div>

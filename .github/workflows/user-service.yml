@@ -1,10 +1,10 @@
-name: Build & Push & Deploy book-catalog-service
+name: Build & Push & Deploy user-service
 
 on:
   push:
     branches: [master]
     paths:
-      - "backend/book-catalog-service/**"
+      - "backend/user-service/**"
 
 jobs:
   build-deploy:
@@ -21,9 +21,9 @@ jobs:
       - name: Build & Push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./backend/book-catalog-service
+          context: ./backend/user-service
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/book-catalog-service:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/user-service:latest
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -35,6 +35,6 @@ jobs:
         with:
           inlineScript: |
             az containerapp update \
-              --name book-catalog-service \
+              --name user-service \
               --resource-group sliit-group-2026 \
-              --image ${{ secrets.DOCKERHUB_USERNAME }}/book-catalog-service:latest
+              --image ${{ secrets.DOCKERHUB_USERNAME }}/user-service:latest

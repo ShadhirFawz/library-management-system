@@ -5,7 +5,7 @@ async function verifyWithUserService(token) {
   if (!baseUrl) throw new Error("USER_SERVICE_URL is not set");
 
   const controller = new AbortController();
-  const timeoutMs = Number(process.env.USER_SERVICE_TIMEOUT_MS || 3000);
+  const timeoutMs = Number(process.env.USER_SERVICE_TIMEOUT_MS || 5001);
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {

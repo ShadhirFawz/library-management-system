@@ -59,11 +59,11 @@ router.patch(
   updateCategory,
 );
 
-// DELETE /api/categories/:id — admin only
+// DELETE /api/categories/:id — staff only
 router.delete(
   "/:id",
   authenticate,
-  adminOnly,
+  staffOnly,
   [param("id").isMongoId().withMessage("Invalid category ID")],
   validate,
   deleteCategory,

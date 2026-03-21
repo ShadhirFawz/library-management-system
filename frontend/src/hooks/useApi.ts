@@ -1,24 +1,55 @@
 // ============================
-// API Hook — Connect to backend services
+// API Hook — Real backend integration
 // ============================
 
-const HELP_SERVICE_URL = import.meta.env.VITE_HELP_SERVICE_URL || 'http://localhost:8000';
-const ORDER_SERVICE_URL = import.meta.env.VITE_ORDER_SERVICE_URL || 'http://localhost:8001';
-const BOOK_CATALOG_URL = import.meta.env.VITE_BOOK_CATALOG_URL || 'http://localhost:8002';
-const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL || 'http://localhost:5001';
+const HELP_SERVICE_URL =
+  import.meta.env.VITE_HELP_SERVICE_URL || "http://localhost:5004";
+const ORDER_SERVICE_URL =
+  import.meta.env.VITE_ORDER_SERVICE_URL || "http://localhost:5003";
+const BOOK_CATALOG_URL =
+  import.meta.env.VITE_BOOK_CATALOG_URL || "http://localhost:5002";
+const USER_SERVICE_URL =
+  import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:5001";
 
 export const useApi = () => {
-  const getToken = () => localStorage.getItem('token') || '';
-
-  const callApi = async (baseUrl: string, endpoint: string, options: RequestInit = {}) => {
-    const url = `${baseUrl}/api/${endpoint}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...options.headers,
+  const getAuthHeaders = () => {
+    const stored = localStorage.getItem("libramanage_auth");
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
     };
-<<<<<<< Updated upstream
-=======
+    if (stored) {
+      try {
+        const { token } = JSON.parse(stored);
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+      } catch (error) {
+        console.error("Failed to read auth token:", error);
+      }
+    }
+    return headers;
+  };
+
+  const callApi = async (
+    service: string,
+    endpoint: string,
+    options: RequestInit = {},
+  ): Promise<any> => {
+    // Route to the correct service based on service name
+    let baseUrl = USER_SERVICE_URL;
+    if (service === "book-catalog") baseUrl = BOOK_CATALOG_URL;
+    else if (service === "order-service") baseUrl = ORDER_SERVICE_URL;
+    else if (service === "help-service") baseUrl = HELP_SERVICE_URL;
+
+    const url = `${baseUrl}/api/${endpoint}`;
+    const headers = getAuthHeaders();
+    const finalOptions: RequestInit = {
+      ...options,
+      headers: {
+        ...headers,
+        ...(options.headers || {}),
+      },
+    };
     if (stored) {
       try {
         const { token } = JSON.parse(stored);
@@ -54,77 +85,244 @@ export const useApi = () => {
       },
     };
 
->>>>>>> Stashed changes
+
     try {
-      const resp = await fetch(url, { ...options, headers });
-      if (!resp.ok) throw new Error(`API Error: ${resp.status}`);
-      return await resp.json();
-    } catch (err) {
-      console.error(`[API] Error calling ${url}:`, err);
-      throw err;
+      const response = await fetch(url, finalOptions);
+
+      // Handle 401 Unauthorized
+      if (response.status === 401) {
+        localStorage.removeItem("libramanage_auth");
+        window.location.href = "/login";
+        return null;
+      }
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `API Error: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error(`[API Error] ${url}:`, error);
+      throw error;
     }
   };
 
   return {
+    auth: {
+      login: (email: string, password: string) =>
+        fetch(`${USER_SERVICE_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }).then((res) => {
+          if (!res.ok) throw new Error("Login failed");
+          return res.json();
+        }),
+      register: (data: any) =>
+        fetch(`${USER_SERVICE_URL}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }).then((res) => {
+          if (!res.ok) throw new Error("Registration failed");
+          return res.json();
+        }),
+    },
     users: {
-      getAll: () => callApi('user-management', 'users'),
-      getById: (id: string) => callApi('user-management', `users/${id}`),
-      create: (data: any) => callApi('user-management', 'users', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => callApi('user-management', `users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-      delete: (id: string) => callApi('user-management', `users/${id}`, { method: 'DELETE' }),
-      suspend: (id: string) => callApi('user-management', `users/${id}/suspend`, { method: 'PATCH' }),
+      getAll: () => callApi("user-service", "users"),
+      getById: (id: string) => callApi("user-service", `users/${id}`),
+      create: (data: any) =>
+        callApi("user-service", "users", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: any) =>
+        callApi("user-service", `users/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        callApi("user-service", `users/${id}`, { method: "DELETE" }),
+      suspend: (id: string) =>
+        callApi("user-service", `users/${id}/suspend`, { method: "PATCH" }),
     },
     memberships: {
-      getAll: () => callApi('user-management', 'memberships'),
-      create: (data: any) => callApi('user-management', 'memberships', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => callApi('user-management', `memberships/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-      delete: (id: string) => callApi('user-management', `memberships/${id}`, { method: 'DELETE' }),
+      getAll: () => callApi("user-service", "memberships"),
+      create: (data: any) =>
+        callApi("user-service", "memberships", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: any) =>
+        callApi("user-service", `memberships/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        callApi("user-service", `memberships/${id}`, { method: "DELETE" }),
     },
     userMemberships: {
-      getByUser: (userId: string) => callApi('user-management', `user-memberships/user/${userId}`),
-      assign: (data: any) => callApi('user-management', 'user-memberships', { method: 'POST', body: JSON.stringify(data) }),
+      getByUser: (userId: string) =>
+        callApi("user-service", `user-memberships/user/${userId}`),
+      assign: (data: any) =>
+        callApi("user-service", "user-memberships", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+    },
+    manageUsers: {
+      getAll: () => callApi('manage-users', ''),
+      getById: (id: string) => callApi('manage-users', id),
+      create: (data: any) =>
+        callApi('manage-users', '', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: any) =>
+        callApi('manage-users', id, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        callApi('manage-users', id, { method: 'DELETE' }),
+      promote: (id: string) =>
+        callApi('manage-users', `${id}/promote`, { method: 'PUT' }),
     },
     books: {
-      getAll: () => callApi('book-catalog', 'books'),
-      getById: (id: string) => callApi('book-catalog', `books/${id}`),
-      create: (data: any) => callApi('book-catalog', 'books', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => callApi('book-catalog', `books/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-      delete: (id: string) => callApi('book-catalog', `books/${id}`, { method: 'DELETE' }),
+      getAll: () => callApi("book-catalog", "books"),
+      getById: (id: string) => callApi("book-catalog", `books/${id}`),
+      create: (data: any) =>
+        callApi("book-catalog", "books", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: any) =>
+        callApi("book-catalog", `books/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        callApi("book-catalog", `books/${id}`, { method: "DELETE" }),
     },
     authors: {
-      getAll: () => callApi('book-catalog', 'authors'),
-      create: (data: any) => callApi('book-catalog', 'authors', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => callApi('book-catalog', `authors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-      delete: (id: string) => callApi('book-catalog', `authors/${id}`, { method: 'DELETE' }),
+      getAll: () => callApi("book-catalog", "authors"),
+      create: (data: any) =>
+        callApi("book-catalog", "authors", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: any) =>
+        callApi("book-catalog", `authors/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        callApi("book-catalog", `authors/${id}`, { method: "DELETE" }),
     },
     categories: {
-      getAll: () => callApi('book-catalog', 'categories'),
-      create: (data: any) => callApi('book-catalog', 'categories', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => callApi('book-catalog', `categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-      delete: (id: string) => callApi('book-catalog', `categories/${id}`, { method: 'DELETE' }),
+      getAll: () => callApi("book-catalog", "categories"),
+      create: (data: any) =>
+        callApi("book-catalog", "categories", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: any) =>
+        callApi("book-catalog", `categories/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        callApi("book-catalog", `categories/${id}`, { method: "DELETE" }),
     },
     inventory: {
-      getAll: () => callApi('book-catalog', 'book-copies'),
-      create: (data: any) => callApi('book-catalog', 'book-copies', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => callApi('book-catalog', `book-copies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      getAll: () => callApi("book-catalog", "books/copies"),
+      create: (data: any) =>
+        callApi("book-catalog", `books/${data.bookId}/copies`, {
+          method: "POST",
+          body: JSON.stringify({
+            barcode: data.barcode,
+            location: data.location,
+            condition: data.condition,
+          }),
+        }),
+      update: (id: string, data: any) =>
+        callApi("book-catalog", `books/copies/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        callApi("book-catalog", `books/copies/${id}`, {
+          method: "DELETE",
+        }),
     },
     orders: {
-      getAll: () => callApi('order-service', 'borrow-orders'),
-      create: (data: any) => callApi('order-service', 'borrow-orders', { method: 'POST', body: JSON.stringify(data) }),
-      return: (id: string) => callApi('order-service', `borrow-orders/${id}/return`, { method: 'PATCH' }),
-      markOverdue: (id: string) => callApi('order-service', `borrow-orders/${id}/overdue`, { method: 'PATCH' }),
+      getAll: () => callApi("order-service", "orders"),
+      getMy: () => callApi("order-service", "orders/my"),
+      getById: (id: string) => callApi("order-service", `orders/${id}`),
+      borrow: (data: { bookCopyId: string; bookId?: string }) =>
+        callApi("order-service", "orders/borrow", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      return: (id: string) =>
+        callApi("order-service", `orders/${id}/return`, {
+          method: "POST",
+        }),
     },
     reservations: {
-      getAll: () => callApi('order-service', 'reservations'),
-      create: (data: any) => callApi('order-service', 'reservations', { method: 'POST', body: JSON.stringify(data) }),
-      cancel: (id: string) => callApi('order-service', `reservations/${id}/cancel`, { method: 'PATCH' }),
+      getAll: () => callApi("order-service", "reservations"),
+      getMy: () => callApi("order-service", "reservations/my"),
+      getPending: () => callApi("order-service", "reservations?status=pending"),
+      getForBook: (bookId: string) =>
+        callApi("order-service", `reservations/book/${bookId}`),
+      create: (data: { bookId: string }) =>
+        callApi("order-service", "reservations", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      cancel: (id: string) =>
+        callApi("order-service", `reservations/${id}`, {
+          method: "DELETE",
+        }),
+      approve: (id: string, bookCopyId?: string) =>
+        callApi("order-service", `reservations/${id}/approve`, {
+          method: "PUT",
+          body: JSON.stringify({ bookCopyId }),
+        }),
+      reject: (id: string, reason?: string) =>
+        callApi("order-service", `reservations/${id}/reject`, {
+          method: "PUT",
+          body: JSON.stringify({ reason }),
+        }),
     },
     fines: {
-      getAll: () => callApi('order-service', 'fines'),
-      markPaid: (id: string) => callApi('order-service', `fines/${id}/pay`, { method: 'PATCH' }),
+      getAll: () => callApi("order-service", "fines"),
+      getMy: () => callApi("order-service", "fines/my"),
+      getById: (id: string) => callApi("order-service", `fines/${id}`),
+      getByOrder: (orderId: string) =>
+        callApi("order-service", `fines/order/${orderId}`),
+      pay: (id: string) =>
+        callApi("order-service", `fines/${id}/pay`, { method: "POST" }),
     },
-<<<<<<< Updated upstream
-=======
+    support: {
+      getAll: () => callApi("help-service", "tickets"),
+      create: (data: any) =>
+        callApi("help-service", "tickets", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      reply: (id: string, data: any) =>
+        callApi("help-service", `tickets/${id}/reply`, {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      updateStatus: (id: string, status: string) =>
+        callApi("help-service", `tickets/${id}/status`, {
+          method: "PATCH",
+          body: JSON.stringify({ status }),
+        }),
+    },
     support: {
       getAll: () => callApi('customer-care', 'tickets'),
       create: (data: any) =>
@@ -143,17 +341,33 @@ export const useApi = () => {
           body: JSON.stringify({ status }),
         }),
     },
->>>>>>> Stashed changes
     tickets: {
-      getAll: () => callApi(HELP_SERVICE_URL, 'tickets/all'),
-      create: (data: any) => callApi(HELP_SERVICE_URL, 'tickets', { method: 'POST', body: JSON.stringify(data) }),
-      respond: (id: string, response: string, status?: string) => callApi(HELP_SERVICE_URL, `tickets/${id}/respond`, { method: 'PUT', body: JSON.stringify({ response, status }) }),
+      getAll: () => callApi("help-service", "tickets/all"),
+      create: (data: any) =>
+        callApi("help-service", "tickets", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      respond: (id: string, response: string, status?: string) =>
+        callApi("help-service", `tickets/${id}/respond`, {
+          method: "PUT",
+          body: JSON.stringify({ response, status }),
+        }),
     },
     articles: {
-      getAll: () => callApi(HELP_SERVICE_URL, 'faq'),
-      create: (data: any) => callApi(HELP_SERVICE_URL, 'faq', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => callApi(HELP_SERVICE_URL, `faq/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-      delete: (id: string) => callApi(HELP_SERVICE_URL, `faq/${id}`, { method: 'DELETE' }),
+      getAll: () => callApi("help-service", "faq"),
+      create: (data: any) =>
+        callApi("help-service", "faq", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: any) =>
+        callApi("help-service", `faq/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        callApi("help-service", `faq/${id}`, { method: "DELETE" }),
     },
   };
 };

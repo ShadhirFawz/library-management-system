@@ -13,7 +13,51 @@ const {
 
 const router = express.Router();
 
-// GET /api/fines/my
+/**
+ * @swagger
+ * /api/fines/my:
+ *   get:
+ *     summary: Get current user's fines
+ *     tags: [Fines]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: isPaid
+ *         schema:
+ *           type: boolean
+ *         description: Filter by payment status
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: List of user's fines
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fines:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Fine'
+ *                 unpaidTotal:
+ *                   type: number
+ *                   description: Total amount of unpaid fines
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ */
 router.get(
   "/my",
   authenticate,
@@ -29,7 +73,36 @@ router.get(
   getMyFines,
 );
 
-// GET /api/fines/order/:orderId
+/**
+ * @swagger
+ * /api/fines/order/{orderId}:
+ *   get:
+ *     summary: Get fine by order ID
+ *     tags: [Fines]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *     responses:
+ *       200:
+ *         description: Fine details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fine:
+ *                   $ref: '#/components/schemas/Fine'
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Fine not found
+ */
 router.get(
   "/order/:orderId",
   authenticate,
@@ -38,7 +111,40 @@ router.get(
   getFineByOrderId,
 );
 
-// POST /api/fines/:id/pay
+/**
+ * @swagger
+ * /api/fines/{id}/pay:
+ *   post:
+ *     summary: Mark a fine as paid
+ *     tags: [Fines]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fine ID
+ *     responses:
+ *       200:
+ *         description: Fine marked as paid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 fine:
+ *                   $ref: '#/components/schemas/Fine'
+ *       400:
+ *         description: Fine already paid
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Fine not found
+ */
 router.post(
   "/:id/pay",
   authenticate,
@@ -47,7 +153,54 @@ router.post(
   payFine,
 );
 
-// GET /api/fines — staff only
+/**
+ * @swagger
+ * /api/fines:
+ *   get:
+ *     summary: Get all fines (staff only)
+ *     tags: [Fines]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: isPaid
+ *         schema:
+ *           type: boolean
+ *         description: Filter by payment status
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: List of all fines
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fines:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Fine'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       403:
+ *         description: Staff access required
+ */
 router.get(
   "/",
   authenticate,
@@ -65,7 +218,36 @@ router.get(
   getAllFines,
 );
 
-// GET /api/fines/:id
+/**
+ * @swagger
+ * /api/fines/{id}:
+ *   get:
+ *     summary: Get a specific fine
+ *     tags: [Fines]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fine ID
+ *     responses:
+ *       200:
+ *         description: Fine details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fine:
+ *                   $ref: '#/components/schemas/Fine'
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Fine not found
+ */
 router.get(
   "/:id",
   authenticate,
