@@ -104,3 +104,51 @@ exports.updateUserRole = async (req, res, next) => {
   }
 
 };
+
+exports.updateBorrowCount = async (req, res, next) => {
+
+  try {
+
+    const { increment } = req.body;
+    const parsedIncrement = Number(increment);
+
+    if (!Number.isFinite(parsedIncrement) || parsedIncrement === 0) {
+      return res.status(400).json({
+        message: "increment must be a non-zero number"
+      });
+    }
+
+    const isStaff = ["ADMIN", "LIBRARIAN"].includes(req.user.role);
+    const isSelf = String(req.user.id) === String(req.params.id);
+
+    if (!isStaff && !isSelf) {
+      return res.status(403).json({
+        message: "Access denied"
+      });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    const currentCount = Number(user.activeBorrowCount || 0);
+    user.activeBorrowCount = Math.max(0, currentCount + parsedIncrement);
+    await user.save();
+
+    const safeUser = user.toObject();
+    delete safeUser.password;
+
+    res.json({
+      message: "Borrow count updated successfully",
+      user: safeUser
+    });
+
+  } catch (error) {
+    next(error);
+  }
+
+};

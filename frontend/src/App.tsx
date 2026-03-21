@@ -37,6 +37,7 @@ import MyBorrowings from "@/pages/member/MyBorrowings";
 import MyReservations from "@/pages/member/MyReservations";
 import MyFines from "@/pages/member/MyFines";
 import RaiseSupportTicket from "@/pages/member/RaiseSupportTicket";
+import MemberArticles from "@/pages/member/Articles";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const AppRoutes = () => (
       <Route path="reservations" element={<MyReservations />} />
       <Route path="fines" element={<MyFines />} />
       <Route path="support" element={<RaiseSupportTicket />} />
+      <Route path="articles" element={<MemberArticles />} />
     </Route>
 
     <Route path="*" element={<NotFound />} />

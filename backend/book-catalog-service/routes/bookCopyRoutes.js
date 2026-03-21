@@ -16,6 +16,38 @@ const {
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/books/copies:
+ *   get:
+ *     summary: Get all book copies (Staff inventory) (Staff only)
+ *     tags: [Book Copies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [available, borrowed, lost, damaged]
+ *         description: Filter by copy status
+ *     responses:
+ *       200:
+ *         description: List of all book copies
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 copies:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/BookCopy'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Staff access required
+ */
 // GET /api/books/copies — list all book copies across all books (for staff inventory)
 router.get(
   "/copies",
@@ -30,6 +62,48 @@ router.get(
   getAllCopies,
 );
 
+/**
+ * @swagger
+ * /api/books/{bookId}/copies:
+ *   post:
+ *     summary: Add a new physical copy to a book (Staff only)
+ *     tags: [Book Copies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Book ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [barcode]
+ *             properties:
+ *               barcode:
+ *                 type: string
+ *               location:
+ *                 type: string
+ *               condition:
+ *                 type: string
+ *                 enum: [new, good, fair, poor]
+ *     responses:
+ *       201:
+ *         description: Book copy added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BookCopy'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Staff access required
+ */
 // POST /api/books/:bookId/copies — add a new physical copy to a book
 router.post(
   "/:bookId/copies",
@@ -52,6 +126,42 @@ router.post(
   addCopy,
 );
 
+/**
+ * @swagger
+ * /api/books/{bookId}/copies:
+ *   get:
+ *     summary: Get all copies for a specific book
+ *     tags: [Book Copies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Book ID
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [available, borrowed, lost, damaged]
+ *         description: Filter by copy status
+ *     responses:
+ *       200:
+ *         description: List of book copies for the book
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 copies:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/BookCopy'
+ *       401:
+ *         description: Unauthorized
+ */
 // GET /api/books/:bookId/copies — list all copies for a book
 router.get(
   "/:bookId/copies",
@@ -66,6 +176,33 @@ router.get(
   getCopiesByBook,
 );
 
+/**
+ * @swagger
+ * /api/books/copies/{copyId}:
+ *   get:
+ *     summary: Get a specific book copy by ID
+ *     tags: [Book Copies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: copyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Book Copy ID
+ *     responses:
+ *       200:
+ *         description: Book copy details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BookCopy'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Copy not found
+ */
 // GET /api/books/copies/:copyId — fetch a single copy (used by Order Service)
 router.get(
   "/copies/:copyId",
@@ -75,6 +212,50 @@ router.get(
   getCopyById,
 );
 
+/**
+ * @swagger
+ * /api/books/copies/{copyId}:
+ *   patch:
+ *     summary: Update a book copy status/location/condition (Staff only)
+ *     tags: [Book Copies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: copyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Book Copy ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [available, borrowed, lost, damaged]
+ *               location:
+ *                 type: string
+ *               condition:
+ *                 type: string
+ *                 enum: [new, good, fair, poor]
+ *     responses:
+ *       200:
+ *         description: Book copy updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BookCopy'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Staff access required
+ *       404:
+ *         description: Copy not found
+ */
 // PATCH /api/books/copies/:copyId — update status / location / condition
 router.patch(
   "/copies/:copyId",
@@ -92,6 +273,31 @@ router.patch(
   updateCopy,
 );
 
+/**
+ * @swagger
+ * /api/books/copies/{copyId}:
+ *   delete:
+ *     summary: Delete a book copy (Staff only)
+ *     tags: [Book Copies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: copyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Book Copy ID
+ *     responses:
+ *       200:
+ *         description: Book copy deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Staff access required
+ *       404:
+ *         description: Copy not found
+ */
 // DELETE /api/books/copies/:copyId — staff only
 router.delete(
   "/copies/:copyId",
@@ -102,6 +308,33 @@ router.delete(
   deleteCopy,
 );
 
+/**
+ * @swagger
+ * /api/books/copies/{copyId}/borrow:
+ *   patch:
+ *     summary: Mark a book copy as borrowed
+ *     tags: [Book Copies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: copyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Book Copy ID
+ *     responses:
+ *       200:
+ *         description: Book copy marked as borrowed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BookCopy'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Copy not found
+ */
 // PATCH /api/books/copies/:copyId/borrow — called by Order Service
 router.patch(
   "/copies/:copyId/borrow",
@@ -111,6 +344,33 @@ router.patch(
   markCopyAsBorrowed,
 );
 
+/**
+ * @swagger
+ * /api/books/copies/{copyId}/return:
+ *   patch:
+ *     summary: Mark a book copy as returned
+ *     tags: [Book Copies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: copyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Book Copy ID
+ *     responses:
+ *       200:
+ *         description: Book copy marked as returned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BookCopy'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Copy not found
+ */
 // PATCH /api/books/copies/:copyId/return — called by Order Service
 router.patch(
   "/copies/:copyId/return",

@@ -41,7 +41,8 @@ export const useApi = () => {
     else if (service === "order-service") baseUrl = ORDER_SERVICE_URL;
     else if (service === "help-service") baseUrl = HELP_SERVICE_URL;
 
-    const url = `${baseUrl}/api/${endpoint}`;
+    const cleanEndpoint = endpoint.replace(/^\/+/, "");
+    const url = `${baseUrl}/api/${cleanEndpoint}`;
     const headers = getAuthHeaders();
     const finalOptions: RequestInit = {
       ...options,
@@ -65,8 +66,7 @@ export const useApi = () => {
         let errorMessage = `API Error: ${response.status}`;
         try {
           const errorBody = await response.json();
-          errorMessage =
-            errorBody?.message || errorBody?.error || errorMessage;
+          errorMessage = errorBody?.message || errorBody?.error || errorMessage;
         } catch {
           // keep fallback for non-JSON error responses
         }
@@ -102,6 +102,12 @@ export const useApi = () => {
         }),
     },
     users: {
+      getProfile: () => callApi("user-service", "users/profile"),
+      updateProfile: (data: Record<string, unknown>) =>
+        callApi("user-service", "users/profile", {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
       getAll: () => callApi("user-service", "users"),
       getById: (id: string) => callApi("user-service", `users/${id}`),
       create: (data: any) =>
@@ -144,22 +150,24 @@ export const useApi = () => {
         }),
     },
     manageUsers: {
-      getAll: () => callApi('manage-users', ''),
-      getById: (id: string) => callApi('manage-users', id),
-      create: (data: any) =>
-        callApi('manage-users', '', {
-          method: 'POST',
+      getAll: () => callApi("user-service", "manage-users"),
+      getById: (id: string) => callApi("user-service", `manage-users/${id}`),
+      create: (data: Record<string, unknown>) =>
+        callApi("user-service", "manage-users", {
+          method: "POST",
           body: JSON.stringify(data),
         }),
-      update: (id: string, data: any) =>
-        callApi('manage-users', id, {
-          method: 'PUT',
+      update: (id: string, data: Record<string, unknown>) =>
+        callApi("user-service", `manage-users/${id}`, {
+          method: "PUT",
           body: JSON.stringify(data),
         }),
       delete: (id: string) =>
-        callApi('manage-users', id, { method: 'DELETE' }),
+        callApi("user-service", `manage-users/${id}`, { method: "DELETE" }),
       promote: (id: string) =>
-        callApi('manage-users', `${id}/promote`, { method: 'PUT' }),
+        callApi("user-service", `manage-users/${id}/promote`, {
+          method: "PUT",
+        }),
     },
     books: {
       getAll: () => callApi("book-catalog", "books"),
@@ -296,7 +304,7 @@ export const useApi = () => {
         }),
     },
     tickets: {
-      getAll: () => callApi("help-service", "tickets/all"),
+      getAll: () => callApi("help-service", "tickets"),
       create: (data: any) =>
         callApi("help-service", "tickets", {
           method: "POST",

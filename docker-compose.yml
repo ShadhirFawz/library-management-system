@@ -1,15 +1,4 @@
 services:
-  mongo:
-    image: mongo
-    container_name: library-mongo
-    ports:
-      - "27017:27017"
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.runCommand({ ping: 1 })"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   user-service:
     build:
       context: ./backend/user-service
@@ -17,22 +6,16 @@ services:
       - ./backend/user-service/.env
     ports:
       - "5001:5001"
-    depends_on:
-      mongo:
-        condition: service_healthy
 
   book-catalog-service:
     build:
       context: ./backend/book-catalog-service
-    environment:
-      - PORT=5002
-      - MONGO_URI=mongodb://mongo:27017/book-catalog-db
-      - JWT_SECRET=${JWT_SECRET:-your-secret-key}
+    env_file:
+      - ./backend/book-catalog-service/.env
     ports:
       - "5002:5002"
     depends_on:
-      mongo:
-        condition: service_healthy
+      - user-service
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5002/health"]
       interval: 30s
@@ -43,23 +26,13 @@ services:
   order-service:
     build:
       context: ./backend/order-service
-    environment:
-      - PORT=5003
-      - MONGO_URI=mongodb://mongo:27017/order-service-db
-      - JWT_SECRET=${JWT_SECRET:-your-secret-key}
-      - USER_SERVICE_URL=http://user-service:5001
-      - BOOK_SERVICE_URL=http://book-catalog-service:5002
-      - DEFAULT_BORROW_DAYS=14
-      - DEFAULT_FINE_PER_DAY=0.50
+    env_file:
+      - ./backend/order-service/.env
     ports:
       - "5003:5003"
     depends_on:
-      mongo:
-        condition: service_healthy
-      user-service:
-        condition: service_started
-      book-catalog-service:
-        condition: service_healthy
+      - user-service
+      - book-catalog-service
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5003/health"]
       interval: 30s
@@ -70,15 +43,9 @@ services:
   help-service:
     build:
       context: ./backend/help-service
-    environment:
-      - PORT=8000
-      - MONGO_URI=mongodb://mongo:27017/library_help
-      - USER_SERVICE_URL=http://user-service:5001
-      - ALLOW_LOCAL_JWT_VERIFY=false
+    env_file:
+      - ./backend/help-service/.env
     ports:
-      - "8000:8000"
+      - "5004:5004"
     depends_on:
-      mongo:
-        condition: service_healthy
-      user-service:
-        condition: service_started
+      - user-service

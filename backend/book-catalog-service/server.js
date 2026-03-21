@@ -4,6 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const swaggerUi = require("swagger-ui-express");
+const swaggerJSDoc = require("swagger-jsdoc");
 
 const connectDB = require("./config/db");
 const bookRoutes = require("./routes/bookRoutes");
@@ -25,6 +27,115 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use(limiter);
+
+// Swagger setup
+const swaggerSpec = swaggerJSDoc({
+  definition: {
+    openapi: "3.0.3",
+    info: {
+      title: "Library Book Catalog Service API",
+      version: "1.0.0",
+      description:
+        "Book Catalog Service for Library Management System - handles books, authors, categories, and book copies",
+    },
+    servers: [{ url: "/" }],
+    components: {
+      securitySchemes: {
+        bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+      },
+      schemas: {
+        Book: {
+          type: "object",
+          properties: {
+            _id: { type: "string", description: "Book ID" },
+            title: { type: "string" },
+            isbn: { type: "string" },
+            authors: {
+              type: "array",
+              items: { $ref: "#/components/schemas/Author" },
+            },
+            description: { type: "string" },
+            publisher: { type: "string" },
+            publicationYear: { type: "integer" },
+            language: { type: "string" },
+            pages: { type: "integer" },
+            categories: {
+              type: "array",
+              items: { $ref: "#/components/schemas/Category" },
+            },
+            coverImage: { type: "string", format: "uri" },
+            copiesCount: {
+              type: "integer",
+              description: "Total copies available",
+            },
+            availableCopies: { type: "integer" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        Author: {
+          type: "object",
+          properties: {
+            _id: { type: "string", description: "Author ID" },
+            name: { type: "string" },
+            bio: { type: "string" },
+            birthYear: { type: "integer" },
+            nationality: { type: "string" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        Category: {
+          type: "object",
+          properties: {
+            _id: { type: "string", description: "Category ID" },
+            name: { type: "string" },
+            description: { type: "string" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        BookCopy: {
+          type: "object",
+          properties: {
+            _id: { type: "string", description: "Book Copy ID" },
+            bookId: { type: "string", description: "Associated Book ID" },
+            barcode: { type: "string" },
+            location: { type: "string" },
+            condition: {
+              type: "string",
+              enum: ["new", "good", "fair", "poor"],
+            },
+            status: {
+              type: "string",
+              enum: ["available", "borrowed", "lost", "damaged"],
+            },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        Pagination: {
+          type: "object",
+          properties: {
+            total: { type: "integer" },
+            page: { type: "integer" },
+            limit: { type: "integer" },
+            pages: { type: "integer" },
+          },
+        },
+        Error: {
+          type: "object",
+          properties: {
+            error: { type: "string" },
+          },
+        },
+      },
+    },
+  },
+  apis: ["./routes/*.js"],
+});
+
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/books", bookCopyRoutes);
 app.use("/api/books", bookRoutes);

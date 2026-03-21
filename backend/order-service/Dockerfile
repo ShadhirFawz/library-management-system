@@ -3,7 +3,7 @@ FROM node:18-alpine AS deps
 
 WORKDIR /app
 
-COPY package.json ./
+COPY package.json package-lock.json ./
 RUN npm install --omit=dev
 
 # ─── Stage 2: Production image ───────────────────────────────

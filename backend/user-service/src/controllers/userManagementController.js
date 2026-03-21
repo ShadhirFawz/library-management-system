@@ -46,13 +46,23 @@ exports.createUser = async (req, res, next) => {
 // UPDATE USER
 exports.updateUser = async (req, res, next) => {
   try {
-    const updates = req.body;
+    const updates = { ...req.body };
 
-    // Librarian cannot change roles
-    if (req.user.role === "LIBRARIAN" && updates.role) {
-      return res.status(403).json({
-        message: "Librarian cannot change user roles"
-      });
+    // Librarian cannot change roles (but can submit unchanged role values safely)
+    if (req.user.role === "LIBRARIAN" && Object.prototype.hasOwnProperty.call(updates, "role")) {
+      const existingUser = await User.findById(req.params.id).select("role");
+
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (String(existingUser.role) !== String(updates.role)) {
+        return res.status(403).json({
+          message: "Librarian cannot change user roles"
+        });
+      }
+
+      delete updates.role;
     }
 
     const user = await User.findByIdAndUpdate(

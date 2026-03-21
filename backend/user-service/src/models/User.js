@@ -37,6 +37,12 @@ const userSchema = new mongoose.Schema(
     ref: "Membership"
   },
 
+  activeBorrowCount: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+
   address: {
     street: String,
     city: String,
