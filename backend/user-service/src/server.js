@@ -25,7 +25,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.get("/health", (req, res) => {
   res.json({
     service: "User Service",
-    status: "running"
+    status: "running",
   });
 });
 
@@ -36,6 +36,8 @@ app.use("/api/memberships", membershipRoutes);
 app.use("/api/manage-users", userManagementRoutes);
 
 app.use(errorHandler);
+
+//test
 
 const PORT = config.port;
 

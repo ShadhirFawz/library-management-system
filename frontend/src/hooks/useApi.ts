@@ -50,6 +50,41 @@ export const useApi = () => {
         ...(options.headers || {}),
       },
     };
+    if (stored) {
+      try {
+        const { token } = JSON.parse(stored);
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      } catch (error) {
+        console.error('Failed to read auth token:', error);
+      }
+    }
+    return headers;
+  };
+
+  const callApi = async (
+    service: string,
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<any> => {
+    const cleanEndpoint = endpoint.replace(/^\/+/, '');
+    let url: string;
+    if (/^https?:\/\//.test(service)) {
+      const base = service.replace(/\/+$/, '');
+      url = `${base}/api/${cleanEndpoint}`;
+    } else {
+      url = `${USER_SERVICE_URL}/api/${service}/${cleanEndpoint}`;
+    }
+    const headers = getAuthHeaders();
+    const finalOptions: RequestInit = {
+      ...options,
+      headers: {
+        ...headers,
+        ...(options.headers || {}),
+      },
+    };
+
 
     try {
       const response = await fetch(url, finalOptions);
@@ -291,6 +326,24 @@ export const useApi = () => {
       updateStatus: (id: string, status: string) =>
         callApi("help-service", `tickets/${id}/status`, {
           method: "PATCH",
+          body: JSON.stringify({ status }),
+        }),
+    },
+    support: {
+      getAll: () => callApi('customer-care', 'tickets'),
+      create: (data: any) =>
+        callApi('customer-care', 'tickets', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      reply: (id: string, data: any) =>
+        callApi('customer-care', `tickets/${id}/reply`, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      updateStatus: (id: string, status: string) =>
+        callApi('customer-care', `tickets/${id}/status`, {
+          method: 'PATCH',
           body: JSON.stringify({ status }),
         }),
     },
