@@ -95,6 +95,12 @@ export const useApi = () => {
         }),
     },
     users: {
+      getProfile: () => callApi("user-service", "users/profile"),
+      updateProfile: (data: Record<string, unknown>) =>
+        callApi("user-service", "users/profile", {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
       getAll: () => callApi("user-service", "users"),
       getById: (id: string) => callApi("user-service", `users/${id}`),
       create: (data: any) =>
