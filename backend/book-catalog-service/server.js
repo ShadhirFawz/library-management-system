@@ -34,7 +34,7 @@ app.use("/api/categories", categoryRoutes);
 app.get("/health", (_req, res) => {
   res.json({
     status: "OK",
-    service: "book-catalog-service",
+    service: "book-catalog-service v1.0",
     timestamp: new Date().toISOString(),
   });
 });
@@ -50,7 +50,7 @@ app.use((err, _req, res, _next) => {
 
 const startServer = async () => {
   await connectDB();
-  const PORT = process.env.PORT || 80;
+  const PORT = process.env.PORT || 5002;
   app.listen(PORT, () => {
     console.log(`[book-catalog-service] Running on port ${PORT}`);
   });
