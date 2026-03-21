@@ -46,3 +46,10 @@ docker-compose.override.yml
 # Package artifacts
 *.tgz
 *.gz
+
+# Lock files
+package-lock.json
+package.json.lock
+pnpm-lock.yaml
+yarn.lock
+bun.lockb

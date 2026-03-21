@@ -1,4 +1,4 @@
-const Ticket = require('../models/Ticket');
+const Ticket = require("../models/Ticket");
 
 // USER - Raise a new ticket
 const raiseTicket = async (req, res) => {
@@ -6,16 +6,18 @@ const raiseTicket = async (req, res) => {
     const { subject, description } = req.body;
 
     if (!subject || !description) {
-      return res.status(400).json({ error: 'Subject and description are required' });
+      return res
+        .status(400)
+        .json({ error: "Subject and description are required" });
     }
 
     const ticket = await Ticket.create({
       subject,
       description,
-      raisedBy: req.user.userId
+      raisedBy: req.user.userId,
     });
 
-    res.status(201).json({ message: 'Ticket raised successfully', ticket });
+    res.status(201).json({ message: "Ticket raised successfully", ticket });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -24,7 +26,9 @@ const raiseTicket = async (req, res) => {
 // USER - View own tickets
 const getMyTickets = async (req, res) => {
   try {
-    const tickets = await Ticket.find({ raisedBy: req.user.userId }).sort({ createdAt: -1 });
+    const tickets = await Ticket.find({ raisedBy: req.user.userId }).sort({
+      createdAt: -1,
+    });
     res.json({ count: tickets.length, tickets });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -47,7 +51,14 @@ const respondToTicket = async (req, res) => {
     const { response, status } = req.body;
 
     if (!response) {
-      return res.status(400).json({ error: 'Response message is required' });
+      return res.status(400).json({ error: "Response message is required" });
+    }
+
+    const allowedStatus = ["pending", "resolved"];
+    if (status && !allowedStatus.includes(status)) {
+      return res
+        .status(400)
+        .json({ error: `Status must be one of ${allowedStatus.join(", ")}` });
     }
 
     const ticket = await Ticket.findByIdAndUpdate(
@@ -55,14 +66,14 @@ const respondToTicket = async (req, res) => {
       {
         adminResponse: response,
         respondedBy: req.user.userId,
-        status: status || 'in_progress'
+        status: status || "resolved",
       },
-      { new: true }
+      { new: true },
     );
 
-    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
-    res.json({ message: 'Response sent', ticket });
+    res.json({ message: "Response sent", ticket });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

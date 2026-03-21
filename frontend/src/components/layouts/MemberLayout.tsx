@@ -17,6 +17,7 @@ const memberMenu = [
   { label: 'My Reservations', icon: Calendar, path: '/member/reservations' },
   { label: 'My Fines', icon: AlertCircle, path: '/member/fines' },
   { label: 'Support', icon: LifeBuoy, path: '/member/support' },
+  { label: 'FAQ', icon: LifeBuoy, path: '/member/articles' },
 ];
 
 const MemberLayout = () => {
