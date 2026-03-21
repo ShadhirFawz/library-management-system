@@ -222,37 +222,53 @@ export const useApi = () => {
         }),
     },
     orders: {
-      getAll: () => callApi("order-service", "borrow-orders"),
-      create: (data: any) =>
-        callApi("order-service", "borrow-orders", {
+      getAll: () => callApi("order-service", "orders"),
+      getMy: () => callApi("order-service", "orders/my"),
+      getById: (id: string) => callApi("order-service", `orders/${id}`),
+      borrow: (data: { bookCopyId: string; bookId?: string }) =>
+        callApi("order-service", "orders/borrow", {
           method: "POST",
           body: JSON.stringify(data),
         }),
       return: (id: string) =>
-        callApi("order-service", `borrow-orders/${id}/return`, {
-          method: "PATCH",
-        }),
-      markOverdue: (id: string) =>
-        callApi("order-service", `borrow-orders/${id}/overdue`, {
-          method: "PATCH",
+        callApi("order-service", `orders/${id}/return`, {
+          method: "POST",
         }),
     },
     reservations: {
       getAll: () => callApi("order-service", "reservations"),
-      create: (data: any) =>
+      getMy: () => callApi("order-service", "reservations/my"),
+      getPending: () => callApi("order-service", "reservations?status=pending"),
+      getForBook: (bookId: string) =>
+        callApi("order-service", `reservations/book/${bookId}`),
+      create: (data: { bookId: string }) =>
         callApi("order-service", "reservations", {
           method: "POST",
           body: JSON.stringify(data),
         }),
       cancel: (id: string) =>
-        callApi("order-service", `reservations/${id}/cancel`, {
-          method: "PATCH",
+        callApi("order-service", `reservations/${id}`, {
+          method: "DELETE",
+        }),
+      approve: (id: string, bookCopyId?: string) =>
+        callApi("order-service", `reservations/${id}/approve`, {
+          method: "PUT",
+          body: JSON.stringify({ bookCopyId }),
+        }),
+      reject: (id: string, reason?: string) =>
+        callApi("order-service", `reservations/${id}/reject`, {
+          method: "PUT",
+          body: JSON.stringify({ reason }),
         }),
     },
     fines: {
       getAll: () => callApi("order-service", "fines"),
-      markPaid: (id: string) =>
-        callApi("order-service", `fines/${id}/pay`, { method: "PATCH" }),
+      getMy: () => callApi("order-service", "fines/my"),
+      getById: (id: string) => callApi("order-service", `fines/${id}`),
+      getByOrder: (orderId: string) =>
+        callApi("order-service", `fines/order/${orderId}`),
+      pay: (id: string) =>
+        callApi("order-service", `fines/${id}/pay`, { method: "POST" }),
     },
     support: {
       getAll: () => callApi("help-service", "tickets"),

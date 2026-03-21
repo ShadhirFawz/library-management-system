@@ -17,6 +17,55 @@ services:
       - ./backend/user-service/.env
     ports:
       - "5001:5001"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  book-catalog-service:
+    build:
+      context: ./backend/book-catalog-service
+    environment:
+      - PORT=5002
+      - MONGO_URI=mongodb://mongo:27017/book-catalog-db
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key}
+    ports:
+      - "5002:5002"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  order-service:
+    build:
+      context: ./backend/order-service
+    environment:
+      - PORT=5003
+      - MONGO_URI=mongodb://mongo:27017/order-service-db
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key}
+      - USER_SERVICE_URL=http://user-service:5001
+      - BOOK_SERVICE_URL=http://book-catalog-service:5002
+      - DEFAULT_BORROW_DAYS=14
+      - DEFAULT_FINE_PER_DAY=0.50
+    ports:
+      - "5003:5003"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      book-catalog-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   help-service:
     build:
