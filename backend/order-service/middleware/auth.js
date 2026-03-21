@@ -1,7 +1,10 @@
 const jwt = require("jsonwebtoken");
 
+const normalizeRole = (role) =>
+  typeof role === "string" ? role.toUpperCase() : "";
+
 // pulls the Bearer token off the Authorization header and puts the decoded
-// payload on req.user so controllers can read userId and role
+// payload on req.user so controllers can read id and role
 const authenticate = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
 
@@ -19,7 +22,7 @@ const authenticate = (req, res, next) => {
 
 // admins only — must come after authenticate
 const adminOnly = (req, res, next) => {
-  if (req.user?.role !== "admin") {
+  if (normalizeRole(req.user?.role) !== "ADMIN") {
     return res.status(403).json({ error: "Admin access only" });
   }
   next();
@@ -27,8 +30,8 @@ const adminOnly = (req, res, next) => {
 
 // admins and librarians — must come after authenticate
 const staffOnly = (req, res, next) => {
-  const staffRoles = ["admin", "librarian"];
-  if (!staffRoles.includes(req.user?.role)) {
+  const staffRoles = ["ADMIN", "LIBRARIAN"];
+  if (!staffRoles.includes(normalizeRole(req.user?.role))) {
     return res.status(403).json({ error: "Staff access only" });
   }
   next();

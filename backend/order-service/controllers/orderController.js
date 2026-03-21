@@ -15,7 +15,7 @@ const extractToken = (req) => req.headers.authorization?.split(" ")[1];
 
 const borrowBook = async (req, res) => {
   const token = extractToken(req);
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const { bookCopyId, bookId } = req.body;
 
   try {
@@ -88,7 +88,7 @@ const borrowBook = async (req, res) => {
 
 const returnBook = async (req, res) => {
   const token = extractToken(req);
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const isStaff = ["admin", "librarian"].includes(req.user.role);
   const { id } = req.params;
 
@@ -171,7 +171,7 @@ const returnBook = async (req, res) => {
 };
 
 const getMyOrders = async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const { status, page = 1, limit = 10 } = req.query;
 
   try {
@@ -235,7 +235,7 @@ const getAllOrders = async (req, res) => {
 };
 
 const getOrderById = async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const isStaff = ["admin", "librarian"].includes(req.user.role);
 
   try {

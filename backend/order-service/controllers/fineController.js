@@ -2,7 +2,7 @@ const Fine = require("../models/Fine");
 const Order = require("../models/Order");
 
 const getMyFines = async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const { isPaid, page = 1, limit = 10 } = req.query;
 
   try {
@@ -75,7 +75,7 @@ const getAllFines = async (req, res) => {
 };
 
 const getFineByOrderId = async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const isStaff = ["admin", "librarian"].includes(req.user.role);
 
   try {
@@ -100,7 +100,7 @@ const getFineByOrderId = async (req, res) => {
 };
 
 const getFineById = async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const isStaff = ["admin", "librarian"].includes(req.user.role);
 
   try {
@@ -125,7 +125,7 @@ const getFineById = async (req, res) => {
 };
 
 const payFine = async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const isStaff = ["admin", "librarian"].includes(req.user.role);
 
   try {
