@@ -37,6 +37,7 @@ const authenticate = async (req, res, next) => {
 
   try {
     req.user = await verifyWithUserService(token);
+    console.log("[help-service] verifyWithUserService ->", req.user);
     return next();
   } catch (e) {
     if (String(process.env.ALLOW_LOCAL_JWT_VERIFY).toLowerCase() === "true") {
@@ -55,7 +56,13 @@ const authenticate = async (req, res, next) => {
 const authorizeRoles =
   (...roles) =>
   (req, res, next) => {
-    if (!roles.includes(req.user?.role)) {
+    const rawRole = req.user?.role;
+    const userRole = String(rawRole || "").toLowerCase();
+    const allowed = roles.map((r) => String(r || "").toLowerCase());
+    if (!allowed.includes(userRole)) {
+      console.log(
+        `[help-service] authorizeRoles denied. required=${roles.join(",")}, actual=${rawRole}`,
+      );
       return res.status(403).json({ error: "Access denied" });
     }
     next();
