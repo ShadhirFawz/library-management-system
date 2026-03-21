@@ -13,6 +13,38 @@ const {
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/categories:
+ *   post:
+ *     summary: Create a new category (Staff only)
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Category created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Category'
+ *       401:
+ *         description: Unauthorized - Auth required
+ *       403:
+ *         description: Forbidden - Staff access required
+ */
 // POST /api/categories
 router.post(
   "/",
@@ -26,6 +58,41 @@ router.post(
   createCategory,
 );
 
+/**
+ * @swagger
+ * /api/categories:
+ *   get:
+ *     summary: Get all categories (Public)
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 200
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: List of categories
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 categories:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Category'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ */
 // GET /api/categories
 router.get(
   "/",
@@ -37,6 +104,29 @@ router.get(
   getCategories,
 );
 
+/**
+ * @swagger
+ * /api/categories/{id}:
+ *   get:
+ *     summary: Get a specific category by ID (Public)
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *     responses:
+ *       200:
+ *         description: Category details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Category'
+ *       404:
+ *         description: Category not found
+ */
 // GET /api/categories/:id
 router.get(
   "/:id",
@@ -45,6 +135,46 @@ router.get(
   getCategoryById,
 );
 
+/**
+ * @swagger
+ * /api/categories/{id}:
+ *   patch:
+ *     summary: Update a category (Staff only)
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Category updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Category'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Staff access required
+ *       404:
+ *         description: Category not found
+ */
 // PATCH /api/categories/:id
 router.patch(
   "/:id",
@@ -59,6 +189,31 @@ router.patch(
   updateCategory,
 );
 
+/**
+ * @swagger
+ * /api/categories/{id}:
+ *   delete:
+ *     summary: Delete a category (Staff only)
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category ID
+ *     responses:
+ *       200:
+ *         description: Category deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Staff access required
+ *       404:
+ *         description: Category not found
+ */
 // DELETE /api/categories/:id — staff only
 router.delete(
   "/:id",

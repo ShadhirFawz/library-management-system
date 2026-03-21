@@ -41,7 +41,8 @@ export const useApi = () => {
     else if (service === "order-service") baseUrl = ORDER_SERVICE_URL;
     else if (service === "help-service") baseUrl = HELP_SERVICE_URL;
 
-    const url = `${baseUrl}/api/${endpoint}`;
+    const cleanEndpoint = endpoint.replace(/^\/+/, "");
+    const url = `${baseUrl}/api/${cleanEndpoint}`;
     const headers = getAuthHeaders();
     const finalOptions: RequestInit = {
       ...options,
@@ -50,41 +51,6 @@ export const useApi = () => {
         ...(options.headers || {}),
       },
     };
-    if (stored) {
-      try {
-        const { token } = JSON.parse(stored);
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-      } catch (error) {
-        console.error('Failed to read auth token:', error);
-      }
-    }
-    return headers;
-  };
-
-  const callApi = async (
-    service: string,
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<any> => {
-    const cleanEndpoint = endpoint.replace(/^\/+/, '');
-    let url: string;
-    if (/^https?:\/\//.test(service)) {
-      const base = service.replace(/\/+$/, '');
-      url = `${base}/api/${cleanEndpoint}`;
-    } else {
-      url = `${USER_SERVICE_URL}/api/${service}/${cleanEndpoint}`;
-    }
-    const headers = getAuthHeaders();
-    const finalOptions: RequestInit = {
-      ...options,
-      headers: {
-        ...headers,
-        ...(options.headers || {}),
-      },
-    };
-
 
     try {
       const response = await fetch(url, finalOptions);
@@ -100,8 +66,7 @@ export const useApi = () => {
         let errorMessage = `API Error: ${response.status}`;
         try {
           const errorBody = await response.json();
-          errorMessage =
-            errorBody?.message || errorBody?.error || errorMessage;
+          errorMessage = errorBody?.message || errorBody?.error || errorMessage;
         } catch {
           // keep fallback for non-JSON error responses
         }
@@ -185,22 +150,21 @@ export const useApi = () => {
         }),
     },
     manageUsers: {
-      getAll: () => callApi('manage-users', ''),
-      getById: (id: string) => callApi('manage-users', id),
+      getAll: () => callApi("manage-users", ""),
+      getById: (id: string) => callApi("manage-users", id),
       create: (data: any) =>
-        callApi('manage-users', '', {
-          method: 'POST',
+        callApi("manage-users", "", {
+          method: "POST",
           body: JSON.stringify(data),
         }),
       update: (id: string, data: any) =>
-        callApi('manage-users', id, {
-          method: 'PUT',
+        callApi("manage-users", id, {
+          method: "PUT",
           body: JSON.stringify(data),
         }),
-      delete: (id: string) =>
-        callApi('manage-users', id, { method: 'DELETE' }),
+      delete: (id: string) => callApi("manage-users", id, { method: "DELETE" }),
       promote: (id: string) =>
-        callApi('manage-users', `${id}/promote`, { method: 'PUT' }),
+        callApi("manage-users", `${id}/promote`, { method: "PUT" }),
     },
     books: {
       getAll: () => callApi("book-catalog", "books"),
@@ -336,26 +300,8 @@ export const useApi = () => {
           body: JSON.stringify({ status }),
         }),
     },
-    support: {
-      getAll: () => callApi('customer-care', 'tickets'),
-      create: (data: any) =>
-        callApi('customer-care', 'tickets', {
-          method: 'POST',
-          body: JSON.stringify(data),
-        }),
-      reply: (id: string, data: any) =>
-        callApi('customer-care', `tickets/${id}/reply`, {
-          method: 'POST',
-          body: JSON.stringify(data),
-        }),
-      updateStatus: (id: string, status: string) =>
-        callApi('customer-care', `tickets/${id}/status`, {
-          method: 'PATCH',
-          body: JSON.stringify({ status }),
-        }),
-    },
     tickets: {
-      getAll: () => callApi("help-service", "tickets/all"),
+      getAll: () => callApi("help-service", "tickets"),
       create: (data: any) =>
         callApi("help-service", "tickets", {
           method: "POST",
