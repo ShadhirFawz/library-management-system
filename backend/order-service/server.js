@@ -69,7 +69,13 @@ const swaggerSpec = swaggerJSDoc({
             reservationDate: { type: "string", format: "date-time" },
             status: {
               type: "string",
-              enum: ["pending", "notified", "fulfilled", "cancelled", "expired"],
+              enum: [
+                "pending",
+                "notified",
+                "fulfilled",
+                "cancelled",
+                "expired",
+              ],
             },
             notifiedAt: {
               type: "string",
@@ -120,7 +126,7 @@ app.use("/api/fines", fineRoutes);
 app.get("/health", (_req, res) => {
   res.json({
     status: "OK",
-    service: "order-service",
+    service: "order-service v1.0",
     timestamp: new Date().toISOString(),
   });
 });
