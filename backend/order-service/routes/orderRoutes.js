@@ -73,7 +73,7 @@ router.post(
  * @swagger
  * /api/orders/{id}/return:
  *   post:
- *     summary: Return a borrowed book
+ *     summary: Return a borrowed book (staff only)
  *     tags: [Orders]
  *     security:
  *       - bearerAuth: []
@@ -101,13 +101,14 @@ router.post(
  *       400:
  *         description: Book already returned
  *       403:
- *         description: Access denied
+ *         description: Staff access required
  *       404:
  *         description: Order not found
  */
 router.post(
   "/:id/return",
   authenticate,
+  staffOnly,
   [param("id").isMongoId().withMessage("Invalid order ID")],
   validate,
   returnBook,
