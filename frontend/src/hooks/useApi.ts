@@ -62,8 +62,15 @@ export const useApi = () => {
       }
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `API Error: ${response.status}`);
+        let errorMessage = `API Error: ${response.status}`;
+        try {
+          const errorBody = await response.json();
+          errorMessage =
+            errorBody?.message || errorBody?.error || errorMessage;
+        } catch {
+          // keep fallback for non-JSON error responses
+        }
+        throw new Error(errorMessage);
       }
 
       return await response.json();
