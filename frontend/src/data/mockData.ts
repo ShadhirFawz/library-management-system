@@ -145,6 +145,7 @@ export interface Article {
   content: string;
   category?: string;
   createdBy: string;
+  createdByName?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -241,40 +242,7 @@ export const mockArticles: Article[] = [
   { _id: 'art3', title: 'Library internet access', content: 'Free Wi-Fi is available at all branches...', category: 'Facilities', createdBy: 'usr2', createdAt: '2025-01-15T12:00:00Z' },
 ];
 
-export const mockSupportTickets: SupportTicket[] = [
-  {
-    _id: 't1',
-    subject: 'Unable to login',
-    description: 'I cannot login with my credentials, keeps saying invalid password.',
-    category: 'Account',
-    userId: 'usr3',
-    raisedBy: 'usr3',
-    raisedByName: 'Alice Member',
-    status: 'pending',
-    adminResponse: null,
-    respondedBy: null,
-    respondedByName: null,
-    messages: [],
-    createdAt: '2025-03-18T10:00:00Z',
-    updatedAt: '2025-03-18T10:00:00Z',
-  },
-  {
-    _id: 't2',
-    subject: 'Payment receipt missing',
-    description: 'I paid a fine but did not receive a receipt.',
-    category: 'Billing',
-    userId: 'usr4',
-    raisedBy: 'usr4',
-    raisedByName: 'Bob Reader',
-    status: 'resolved',
-    adminResponse: 'We have emailed the receipt to your address.',
-    respondedBy: 'usr2',
-    respondedByName: 'Sarah Librarian',
-    messages: [],
-    createdAt: '2025-02-28T09:00:00Z',
-    updatedAt: '2025-03-01T12:00:00Z',
-  },
-];
+
 
 export const mockUserMemberships: UserMembership[] = [
   { _id: 'um1', userId: 'usr3', membershipId: 'mem1', startDate: '2025-01-01', expiryDate: '2026-01-01', status: 'ACTIVE' },
