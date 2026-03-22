@@ -76,7 +76,7 @@ const StaffArticles = () => {
   const columns: ColumnDef<Article>[] = [
     { accessorKey: 'title', header: 'Title' },
     { accessorKey: 'category', header: 'Category' },
-    { id: 'createdBy', header: 'Author', cell: ({ row }) => getUserName(row.original.createdBy) },
+    { id: 'createdBy', header: 'Author', cell: ({ row }) => row.original.createdByName || getUserName(row.original.createdBy) },
     { accessorKey: 'createdAt', header: 'Created', cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString() },
     {
       id: 'actions', header: '', cell: ({ row }) => (
