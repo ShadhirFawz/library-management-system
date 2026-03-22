@@ -27,7 +27,7 @@ exports.login = async (req, res, next) => {
 };
 
 // Verify token endpoint (for inter-service verification)
-exports.verify = (req, res) => {
+exports.verify = async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
@@ -37,6 +37,23 @@ exports.verify = (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     // Map 'id' to 'userId' for help-service compatibility
+    // Also include basic user info so other services can show names/emails
+    const User = require("../models/User");
+    const userRecord = await User.findById(decoded.id)
+      .select("fullName email role")
+      .lean();
+    if (userRecord) {
+      return res.json({
+        user: {
+          userId: String(userRecord._id),
+          role: userRecord.role,
+          fullName: userRecord.fullName,
+          email: userRecord.email,
+        },
+      });
+    }
+
+    // Fallback to token payload if DB lookup fails
     res.json({ user: { userId: decoded.id, role: decoded.role } });
   } catch (error) {
     res.status(401).json({ message: "Invalid or expired token" });

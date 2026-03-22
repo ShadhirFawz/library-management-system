@@ -30,8 +30,13 @@ const StaffArticles = () => {
       const data = await api.articles.getAll();
       setArticles(data.articles || []);
     } catch (err) {
-      toast({ title: 'Failed to load articles', variant: 'destructive' });
-      console.error(err);
+      const msg = String((err as any)?.message || '');
+      if (/not found|404/i.test(msg)) {
+        setArticles([]);
+      } else {
+        toast({ title: 'Failed to load articles', variant: 'destructive' });
+        console.error(err);
+      }
     } finally {
       setLoading(false);
     }
@@ -55,8 +60,13 @@ const StaffArticles = () => {
       setSelected(null);
       await loadArticles();
     } catch (err) {
-      toast({ title: 'Failed to save article', variant: 'destructive' });
-      console.error(err);
+      const msg = String((err as any)?.message || '');
+      if (/not found|404/i.test(msg)) {
+        toast({ title: 'Article not found', variant: 'destructive' });
+      } else {
+        toast({ title: 'Failed to save article', variant: 'destructive' });
+        console.error(err);
+      }
     } finally {
       setSaving(false);
     }
@@ -76,7 +86,7 @@ const StaffArticles = () => {
   const columns: ColumnDef<Article>[] = [
     { accessorKey: 'title', header: 'Title' },
     { accessorKey: 'category', header: 'Category' },
-    { id: 'createdBy', header: 'Author', cell: ({ row }) => getUserName(row.original.createdBy) },
+    { id: 'createdBy', header: 'Author', cell: ({ row }) => row.original.createdByName || getUserName(row.original.createdBy) },
     { accessorKey: 'createdAt', header: 'Created', cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString() },
     {
       id: 'actions', header: '', cell: ({ row }) => (

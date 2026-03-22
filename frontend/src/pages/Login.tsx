@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -21,8 +22,7 @@ const Login = () => {
       
       if (result.success) {
         toast({ title: 'Login successful', description: 'Welcome back!' });
-        const stored = JSON.parse(localStorage.getItem('libramanage_auth') || '{}');
-        const role = stored.user?.role;
+        const role = result.user?.role;
         if (role === 'MEMBER') navigate('/member/dashboard');
         else navigate('/staff/dashboard');
       } else {
@@ -68,15 +68,26 @@ const Login = () => {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Password</label>
+            <div className="relative">
             <input 
-              type="password" 
+              type={showPassword ? 'text' : 'password'} 
               value={password} 
               onChange={e => setPassword(e.target.value)} 
               disabled={isLoading}
               required 
-              className="w-full border border-border px-3 py-2 rounded text-sm focus:outline-none focus:border-accent disabled:opacity-50" 
+              className="w-full border border-border px-3 py-2 pr-10 rounded text-sm focus:outline-none focus:border-accent disabled:opacity-50" 
               placeholder="••••••••" 
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              disabled={isLoading}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="absolute inset-y-0 right-0 px-3 flex items-center text-muted-foreground hover:text-foreground disabled:opacity-50"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+            </div>
           </div>
           <button 
             type="submit" 

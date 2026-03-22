@@ -9,11 +9,17 @@ interface AuthUser {
   membershipId: string | null;
 }
 
+interface RegisterPayload {
+  fullName: string;
+  email: string;
+  password: string;
+}
+
 interface AuthContextType {
   user: AuthUser | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (data: any) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
+  register: (data: RegisterPayload) => Promise<{ success: boolean; error?: string }>;
   updateCurrentUser: (updates: Partial<AuthUser>) => void;
   logout: () => void;
   isAuthenticated: boolean;
@@ -23,8 +29,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 // Backend API URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
-const USER_SERVICE_URL = `${API_BASE_URL}/api`;
+const USER_SERVICE_BASE_URL =
+  import.meta.env.VITE_USER_SERVICE_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  'http://localhost:5001';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -47,10 +55,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${USER_SERVICE_URL}/auth/login`, {
+      const response = await fetch(`${USER_SERVICE_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +72,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const data = await response.json();
-      const { user: backendUser, token: backendToken } = data;
+      const backendUser = data?.user || data?.data?.user;
+      const backendToken = data?.token || data?.accessToken || data?.jwt;
+
+      if (!backendUser || !backendToken) {
+        return { success: false, error: 'Invalid login response from server' };
+      }
 
       // Map backend user to our AuthUser interface
       const mappedUser: AuthUser = {
@@ -81,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(mappedUser);
       setToken(backendToken);
 
-      return { success: true };
+      return { success: true, user: mappedUser };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Network error during login';
       return { success: false, error: errorMessage };
@@ -90,10 +103,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (data: any): Promise<{ success: boolean; error?: string }> => {
+  const register = async (data: RegisterPayload): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${USER_SERVICE_URL}/auth/register`, {
+      const response = await fetch(`${USER_SERVICE_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,26 +123,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { success: false, error: error.message || 'Registration failed' };
       }
 
-      const responseData = await response.json();
-      const { user: backendUser } = responseData;
+      await response.json();
 
-      // Map backend user to our AuthUser interface
-      const mappedUser: AuthUser = {
-        _id: backendUser._id,
-        fullName: backendUser.fullName,
-        role: 'MEMBER',
-        email: backendUser.email,
-        profileImage: backendUser.profileImage || '',
-        membershipId: null,
-      };
-
-      // Auto-login after registration
-      // Note: The backend may or may not return a token; adjust as needed
-      const token = responseData.token || 'temp-token';
-      const authData = { token, user: mappedUser };
-      localStorage.setItem('libramanage_auth', JSON.stringify(authData));
-      setUser(mappedUser);
-      setToken(token);
+      // Do not create a session on successful registration.
+      // User must explicitly log in after registering.
+      localStorage.removeItem('libramanage_auth');
+      setUser(null);
+      setToken(null);
 
       return { success: true };
     } catch (error) {

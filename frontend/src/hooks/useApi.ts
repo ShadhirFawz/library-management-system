@@ -12,6 +12,23 @@ const USER_SERVICE_URL =
   import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:5001";
 
 export const useApi = () => {
+  const clearAuthAndRedirectToLogin = () => {
+    localStorage.removeItem("libramanage_auth");
+    window.location.href = "/login";
+  };
+
+  const hasStoredToken = () => {
+    const stored = localStorage.getItem("libramanage_auth");
+    if (!stored) return false;
+
+    try {
+      const { token } = JSON.parse(stored);
+      return Boolean(token);
+    } catch {
+      return false;
+    }
+  };
+
   const getAuthHeaders = () => {
     const stored = localStorage.getItem("libramanage_auth");
     const headers: HeadersInit = {
@@ -53,13 +70,24 @@ export const useApi = () => {
     };
 
     try {
+      console.debug('[API] Request', service, url, finalOptions);
       const response = await fetch(url, finalOptions);
+      console.debug('[API] Response', service, url, response.status);
 
       // Handle 401 Unauthorized
       if (response.status === 401) {
-        localStorage.removeItem("libramanage_auth");
-        window.location.href = "/login";
-        return null;
+        const isUserService = service === "user-service";
+        const isAuthRelatedEndpoint =
+          cleanEndpoint.startsWith("auth/") || cleanEndpoint.startsWith("users/profile");
+
+        // Only force logout when auth validation itself fails on user-service.
+        // Avoid dropping session for transient 401s from other services.
+        if (hasStoredToken() && isUserService && isAuthRelatedEndpoint) {
+          clearAuthAndRedirectToLogin();
+          return null;
+        }
+
+        throw new Error("Unauthorized request");
       }
 
       if (!response.ok) {
@@ -304,7 +332,8 @@ export const useApi = () => {
         }),
     },
     tickets: {
-      getAll: () => callApi("help-service", "tickets"),
+      getAll: () => callApi("help-service", "tickets/all"),
+      getMy: () => callApi("help-service", "tickets/my"),
       create: (data: any) =>
         callApi("help-service", "tickets", {
           method: "POST",
@@ -317,7 +346,11 @@ export const useApi = () => {
         }),
     },
     articles: {
-      getAll: () => callApi("help-service", "faq"),
+      getAll: (category?: string) =>
+        callApi(
+          "help-service",
+          category ? `faq?category=${encodeURIComponent(category)}` : "faq",
+        ),
       create: (data: any) =>
         callApi("help-service", "faq", {
           method: "POST",
@@ -325,7 +358,7 @@ export const useApi = () => {
         }),
       update: (id: string, data: any) =>
         callApi("help-service", `faq/${id}`, {
-          method: "PATCH",
+          method: "PUT",
           body: JSON.stringify(data),
         }),
       delete: (id: string) =>
