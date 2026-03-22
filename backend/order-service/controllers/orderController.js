@@ -88,21 +88,12 @@ const borrowBook = async (req, res) => {
 
 const returnBook = async (req, res) => {
   const token = extractToken(req);
-  const userId = req.user.id;
-  const isStaff = ["admin", "librarian"].includes(req.user.role);
   const { id } = req.params;
 
   try {
     const order = await Order.findById(id);
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
-    }
-
-    // members can only return their own books
-    if (!isStaff && order.userId !== userId) {
-      return res
-        .status(403)
-        .json({ error: "You can only return your own borrowed books" });
     }
 
     if (order.status === "returned") {
