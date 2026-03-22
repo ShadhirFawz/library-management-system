@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader } from 'lucide-react';
+import { Loader, Plus } from 'lucide-react';
 import { useApi } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
 import { Article, getUserName, FAQ_CATEGORIES } from '@/data/mockData';
@@ -18,9 +18,15 @@ const MemberArticles = () => {
         setLoading(true);
         const data = await api.articles.getAll(category || undefined);
         setArticles(data.articles || []);
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
-        toast({ title: 'Failed to load FAQs', variant: 'destructive' });
+        const msg = String(err?.message || '');
+        if (/not found|404/i.test(msg)) {
+          // no articles in DB for this query
+          setArticles([]);
+        } else {
+          toast({ title: 'Failed to load FAQs', variant: 'destructive' });
+        }
       } finally {
         setLoading(false);
       }
@@ -50,8 +56,10 @@ const MemberArticles = () => {
           </select>
           <button
             onClick={() => navigate('/member/support')}
-            className="inline-flex items-center px-3 py-2 rounded bg-primary-foreground text-primary text-sm hover:opacity-90"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-95 shadow-sm transition-shadow"
+            aria-label="Raise a support ticket"
           >
+            <Plus className="h-4 w-4" />
             Raise a ticket
           </button>
         </div>

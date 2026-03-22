@@ -14,9 +14,10 @@ interface DataTableProps<T> {
   title: string;
   searchPlaceholder?: string;
   rowClass?: (row: T) => string;
+  showExport?: boolean;
 }
 
-export function DataTable<T>({ columns, data, title, searchPlaceholder = 'Search...', rowClass }: DataTableProps<T>) {
+export function DataTable<T>({ columns, data, title, searchPlaceholder = 'Search...', rowClass, showExport = true }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -133,18 +134,22 @@ export function DataTable<T>({ columns, data, title, searchPlaceholder = 'Search
               className="w-full sm:w-64 bg-background border border-border pl-10 pr-4 py-1.5 text-sm rounded focus:outline-none focus:border-accent"
             />
           </div>
-          <button
-            onClick={handleExportCsv}
-            className="px-3 py-1.5 bg-background border border-border text-sm font-medium hover:bg-muted transition-colors rounded whitespace-nowrap"
-          >
-            Export CSV
-          </button>
-          <button
-            onClick={handleExportPdf}
-            className="px-3 py-1.5 bg-background border border-border text-sm font-medium hover:bg-muted transition-colors rounded whitespace-nowrap"
-          >
-            Export PDF
-          </button>
+          {showExport ? (
+            <>
+              <button
+                onClick={handleExportCsv}
+                className="px-3 py-1.5 bg-background border border-border text-sm font-medium hover:bg-muted transition-colors rounded whitespace-nowrap"
+              >
+                Export CSV
+              </button>
+              <button
+                onClick={handleExportPdf}
+                className="px-3 py-1.5 bg-background border border-border text-sm font-medium hover:bg-muted transition-colors rounded whitespace-nowrap"
+              >
+                Export PDF
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
       <div className="overflow-x-auto">

@@ -35,8 +35,14 @@ const SupportTickets = () => {
         setTickets(data.tickets || []);
       }
     } catch (err) {
-      toast({ title: 'Failed to load tickets', variant: 'destructive' });
-      console.error(err);
+      const msg = String((err as any)?.message || '');
+      if (/not found|404/i.test(msg)) {
+        // No tickets found — show empty table without an error toast
+        setTickets([]);
+      } else {
+        toast({ title: 'Failed to load tickets', variant: 'destructive' });
+        console.error(err);
+      }
     } finally {
       setLoading(false);
     }
@@ -82,7 +88,6 @@ const SupportTickets = () => {
         <DataTable
           title={user?.role === 'LIBRARIAN' ? 'Awaiting Tickets' : 'All Tickets'}
           data={visibleTickets}
-          rowClass={(r) => (String(r.status || '').toLowerCase() === 'pending' ? 'bg-red-50' : String(r.status || '').toLowerCase() === 'resolved' ? 'bg-green-50' : '')}
           columns={[
             ...columns,
             {
@@ -132,8 +137,13 @@ const SupportTickets = () => {
                       await loadTickets();
                       setSelected(null);
                     } catch (err) {
-                      toast({ title: 'Failed to send reply', variant: 'destructive' });
-                      console.error(err);
+                      const msg = String((err as any)?.message || '');
+                      if (/not found|404/i.test(msg)) {
+                        toast({ title: 'Ticket not found', variant: 'destructive' });
+                      } else {
+                        toast({ title: 'Failed to send reply', variant: 'destructive' });
+                        console.error(err);
+                      }
                     } finally {
                       setSending(false);
                     }

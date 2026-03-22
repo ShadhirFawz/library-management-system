@@ -30,8 +30,13 @@ const StaffArticles = () => {
       const data = await api.articles.getAll();
       setArticles(data.articles || []);
     } catch (err) {
-      toast({ title: 'Failed to load articles', variant: 'destructive' });
-      console.error(err);
+      const msg = String((err as any)?.message || '');
+      if (/not found|404/i.test(msg)) {
+        setArticles([]);
+      } else {
+        toast({ title: 'Failed to load articles', variant: 'destructive' });
+        console.error(err);
+      }
     } finally {
       setLoading(false);
     }
@@ -55,8 +60,13 @@ const StaffArticles = () => {
       setSelected(null);
       await loadArticles();
     } catch (err) {
-      toast({ title: 'Failed to save article', variant: 'destructive' });
-      console.error(err);
+      const msg = String((err as any)?.message || '');
+      if (/not found|404/i.test(msg)) {
+        toast({ title: 'Article not found', variant: 'destructive' });
+      } else {
+        toast({ title: 'Failed to save article', variant: 'destructive' });
+        console.error(err);
+      }
     } finally {
       setSaving(false);
     }

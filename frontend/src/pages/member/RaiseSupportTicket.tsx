@@ -28,7 +28,12 @@ const RaiseSupportTicket = () => {
         });
         setMyTickets(sorted);
       } catch (err) {
-        console.error('Failed to load tickets', err);
+        const msg = String((err as any)?.message || '');
+        if (/not found|404/i.test(msg)) {
+          setMyTickets([]);
+        } else {
+          console.error('Failed to load tickets', err);
+        }
       }
     })();
   }, []);
@@ -48,10 +53,17 @@ const RaiseSupportTicket = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div><h1 className="text-2xl font-bold">Support</h1><p className="text-muted-foreground text-sm">Get help from our team</p></div>
-        <button onClick={() => setCreateModal(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded text-sm font-medium hover:opacity-90 transition-opacity"><Plus size={18} />New Ticket</button>
+        <button
+          onClick={() => setCreateModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-95 shadow-sm transition-shadow"
+          aria-label="Create a new support ticket"
+        >
+          <Plus size={16} />
+          New Ticket
+        </button>
       </div>
 
-      <DataTable title="My Tickets" data={myTickets} columns={columns} />
+      <DataTable title="My Tickets" data={myTickets} columns={columns} showExport={false} />
 
       <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title="Raise Support Ticket">
         <form onSubmit={async (e) => {
@@ -110,6 +122,12 @@ const RaiseSupportTicket = () => {
                   <p>{selected.description}</p>
                 </div>
               )}
+                {selected.adminResponse && (
+                  <div className="border-t border-border pt-4 bg-accent/5 p-3 rounded">
+                    <p><strong>Response:</strong> {selected.respondedByName || selected.respondedBy}</p>
+                    <p className="text-sm mt-2 whitespace-pre-wrap">{selected.adminResponse}</p>
+                  </div>
+                )}
             </div>
           </div>
         )}
