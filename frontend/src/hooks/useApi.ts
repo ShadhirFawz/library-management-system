@@ -53,7 +53,9 @@ export const useApi = () => {
     };
 
     try {
+      console.debug('[API] Request', service, url, finalOptions);
       const response = await fetch(url, finalOptions);
+      console.debug('[API] Response', service, url, response.status);
 
       // Handle 401 Unauthorized
       if (response.status === 401) {
@@ -304,7 +306,8 @@ export const useApi = () => {
         }),
     },
     tickets: {
-      getAll: () => callApi("help-service", "tickets"),
+      getAll: () => callApi("help-service", "tickets/all"),
+      getMy: () => callApi("help-service", "tickets/my"),
       create: (data: any) =>
         callApi("help-service", "tickets", {
           method: "POST",

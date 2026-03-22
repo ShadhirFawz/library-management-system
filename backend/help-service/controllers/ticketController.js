@@ -3,7 +3,7 @@ const Ticket = require("../models/Ticket");
 // USER - Raise a new ticket
 const raiseTicket = async (req, res) => {
   try {
-    const { subject, description } = req.body;
+    const { subject, description, category } = req.body;
 
     if (!subject || !description) {
       return res
@@ -14,7 +14,10 @@ const raiseTicket = async (req, res) => {
     const ticket = await Ticket.create({
       subject,
       description,
+      category: category || null,
       raisedBy: req.user.userId,
+      raisedByName: req.user.fullName || req.user.fullname || null,
+      status: "pending",
     });
 
     res.status(201).json({ message: "Ticket raised successfully", ticket });
@@ -38,7 +41,8 @@ const getMyTickets = async (req, res) => {
 // ADMIN - View all tickets
 const getAllTickets = async (req, res) => {
   try {
-    const tickets = await Ticket.find().sort({ createdAt: -1 });
+    // Return tickets with pending ones first, then recent within each group
+    const tickets = await Ticket.find().sort({ status: 1, createdAt: -1 });
     res.json({ count: tickets.length, tickets });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -48,25 +52,20 @@ const getAllTickets = async (req, res) => {
 // ADMIN - Respond to a ticket
 const respondToTicket = async (req, res) => {
   try {
-    const { response, status } = req.body;
+    const { response } = req.body;
 
     if (!response) {
       return res.status(400).json({ error: "Response message is required" });
     }
 
-    const allowedStatus = ["pending", "resolved"];
-    if (status && !allowedStatus.includes(status)) {
-      return res
-        .status(400)
-        .json({ error: `Status must be one of ${allowedStatus.join(", ")}` });
-    }
-
+    // When an admin/librarian responds, mark the ticket as resolved.
     const ticket = await Ticket.findByIdAndUpdate(
       req.params.id,
       {
         adminResponse: response,
         respondedBy: req.user.userId,
-        status: status || "resolved",
+        respondedByName: req.user.fullName || req.user.fullname || null,
+        status: "resolved",
       },
       { new: true },
     );

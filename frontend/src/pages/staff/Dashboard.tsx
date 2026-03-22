@@ -13,7 +13,7 @@ const StaffDashboard = () => {
   const totalBooks = mockBooks.length;
   const availableCopies = mockBooks.reduce((s, b) => s + b.availableCopies, 0);
   const overdueOrders = mockBorrowOrders.filter(o => o.status === 'OVERDUE').length;
-  const openTickets = mockSupportTickets.filter(t => t.status === 'OPEN' || t.status === 'IN_PROGRESS').length;
+  const openTickets = mockSupportTickets.filter(t => String(t.status || '').toLowerCase() === 'pending').length;
 
   const recentBorrows = mockBorrowOrders.slice(0, 5);
   const recentTickets = mockSupportTickets.slice(0, 5);
@@ -27,7 +27,7 @@ const StaffDashboard = () => {
 
   const ticketCols: ColumnDef<typeof recentTickets[0]>[] = [
     { accessorKey: 'subject', header: 'Subject' },
-    { accessorKey: 'priority', header: 'Priority', cell: ({ row }) => <StatusBadge status={row.original.priority} /> },
+    { accessorKey: 'category', header: 'Category' },
     { accessorKey: 'status', header: 'Status', cell: ({ row }) => <StatusBadge status={row.original.status} /> },
   ];
 

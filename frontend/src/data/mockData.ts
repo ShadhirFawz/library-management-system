@@ -123,11 +123,13 @@ export interface TicketMessage {
 export interface SupportTicket {
   _id: string;
   subject: string;
-  description: string;
+  description: string; // main message body
+  category?: string;
   raisedBy: string;
-  status: 'open' | 'in_progress' | 'resolved';
+  status: 'pending' | 'resolved';
   adminResponse?: string | null;
   respondedBy?: string | null;
+  messages?: TicketMessage[]; // optional thread
   createdAt: string;
   updatedAt: string;
 }
@@ -231,7 +233,7 @@ export const mockFines: Fine[] = [
 
 export const mockSupportTickets: SupportTicket[] = [
   {
-    _id: 'tkt1', userId: 'usr3', subject: 'Cannot access my borrowing history', category: 'Technical', priority: 'HIGH', status: 'OPEN', assignedTo: 'usr2',
+    _id: 'tkt1', userId: 'usr3', subject: 'Cannot access my borrowing history', category: 'Technical', description: 'I cannot see my past borrowings. The page shows an error.', status: 'pending',
     messages: [
       { _id: 'msg1', senderId: 'usr3', senderName: 'Alice Member', message: 'I cannot see my past borrowings. The page shows an error.', timestamp: '2025-03-15T10:00:00Z' },
       { _id: 'msg2', senderId: 'usr2', senderName: 'Sarah Librarian', message: 'We are looking into this issue. Can you try clearing your browser cache?', timestamp: '2025-03-15T11:30:00Z' },
@@ -239,14 +241,14 @@ export const mockSupportTickets: SupportTicket[] = [
     createdAt: '2025-03-15T10:00:00Z', updatedAt: '2025-03-15T11:30:00Z',
   },
   {
-    _id: 'tkt2', userId: 'usr4', subject: 'Request for new book acquisition', category: 'General', priority: 'LOW', status: 'IN_PROGRESS', assignedTo: 'usr2',
+    _id: 'tkt2', userId: 'usr4', subject: 'Request for new book acquisition', category: 'General', description: 'I would like to request "System Design Interview" by Alex Xu.', status: 'pending',
     messages: [
       { _id: 'msg3', senderId: 'usr4', senderName: 'Bob Reader', message: 'I would like to request "System Design Interview" by Alex Xu.', timestamp: '2025-03-14T09:00:00Z' },
     ],
     createdAt: '2025-03-14T09:00:00Z', updatedAt: '2025-03-14T09:00:00Z',
   },
   {
-    _id: 'tkt3', userId: 'usr6', subject: 'Fine dispute', category: 'Billing', priority: 'MEDIUM', status: 'OPEN', assignedTo: null,
+    _id: 'tkt3', userId: 'usr6', subject: 'Fine dispute', category: 'Billing', description: 'I returned the book on time but was still charged a fine. Please review.', status: 'pending',
     messages: [
       { _id: 'msg4', senderId: 'usr6', senderName: 'Diana Bookworm', message: 'I returned the book on time but was still charged a fine. Please review.', timestamp: '2025-03-16T14:00:00Z' },
     ],

@@ -16,8 +16,8 @@ const memberMenu = [
   { label: 'My Borrowings', icon: ShoppingCart, path: '/member/borrowings' },
   { label: 'My Reservations', icon: Calendar, path: '/member/reservations' },
   { label: 'My Fines', icon: AlertCircle, path: '/member/fines' },
-  { label: 'Support', icon: LifeBuoy, path: '/member/support' },
-  { label: 'FAQ', icon: LifeBuoy, path: '/member/articles' },
+  // Sidebar shows a single 'Support' entry which opens the FAQs page
+  { label: 'Support', icon: LifeBuoy, path: '/member/articles' },
 ];
 
 const MemberLayout = () => {

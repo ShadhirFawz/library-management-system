@@ -11,9 +11,18 @@ const ticketSchema = new mongoose.Schema(
       type: String,
       required: [true, "Description is required"],
     },
+    category: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     raisedBy: {
       type: String, // user ID from JWT
       required: true,
+    },
+    raisedByName: {
+      type: String,
+      default: null,
     },
     status: {
       type: String,
@@ -26,6 +35,10 @@ const ticketSchema = new mongoose.Schema(
     },
     respondedBy: {
       type: String, // admin ID from JWT
+      default: null,
+    },
+    respondedByName: {
+      type: String,
       default: null,
     },
   },

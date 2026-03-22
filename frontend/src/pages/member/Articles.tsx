@@ -3,6 +3,7 @@ import { Loader } from 'lucide-react';
 import { useApi } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
 import { Article, getUserName } from '@/data/mockData';
+import { useNavigate } from 'react-router-dom';
 
 const MemberArticles = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -26,11 +27,23 @@ const MemberArticles = () => {
     load();
   }, []);
 
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">FAQ</h1>
-        <p className="text-muted-foreground text-sm">Frequently asked questions</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">FAQ</h1>
+          <p className="text-muted-foreground text-sm">Frequently asked questions</p>
+        </div>
+        <div>
+          <button
+            onClick={() => navigate('/member/support')}
+            className="inline-flex items-center px-3 py-2 rounded bg-primary-foreground text-primary text-sm hover:opacity-90"
+          >
+            Raise a ticket
+          </button>
+        </div>
       </div>
 
       {loading && <div className="flex items-center gap-2 text-muted-foreground"><Loader className="h-4 w-4 animate-spin" /> Loading...</div>}

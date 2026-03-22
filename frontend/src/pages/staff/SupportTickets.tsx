@@ -3,7 +3,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/DataTable';
 import Modal from '@/components/Modal';
 import StatusBadge from '@/components/StatusBadge';
-import { getUserName, SupportTicket } from '@/data/mockData';
+import { SupportTicket } from '@/data/mockData';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useApi } from '@/hooks/useApi';
@@ -27,7 +27,13 @@ const SupportTickets = () => {
     try {
       setLoading(true);
       const data = await api.tickets.getAll();
-      setTickets(data.tickets || []);
+      console.debug('tickets.getAll ->', data);
+      if (!data || !Array.isArray(data.tickets)) {
+        console.warn('Unexpected tickets payload', data);
+        setTickets([]);
+      } else {
+        setTickets(data.tickets || []);
+      }
     } catch (err) {
       toast({ title: 'Failed to load tickets', variant: 'destructive' });
       console.error(err);
@@ -38,16 +44,28 @@ const SupportTickets = () => {
 
   const columns: ColumnDef<SupportTicket>[] = [
     { accessorKey: 'subject', header: 'Subject' },
-    { id: 'raisedBy', header: 'Raised By', cell: ({ row }) => getUserName(row.original.raisedBy) },
+    { id: 'raisedByName', header: 'Raised By', cell: ({ row }) => row.original.raisedByName || row.original.raisedBy },
     { accessorKey: 'status', header: 'Status', cell: ({ row }) => <StatusBadge status={row.original.status} /> },
     { accessorKey: 'createdAt', header: 'Created', cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString() },
   ];
 
   const visibleTickets = useMemo(() => {
-    if (user?.role === 'LIBRARIAN') {
-      return tickets.filter(t => (t.status === 'open' || t.status === 'in_progress') && !t.adminResponse);
-    }
-    return tickets;
+    // sort: pending first, then others, resolved last
+    const copy = [...tickets];
+    const orderVal = (t: any) => {
+      const s = String(t.status || '').toLowerCase();
+      if (s === 'pending') return 0;
+      if (s === 'resolved') return 2;
+      return 1;
+    };
+    copy.sort((a, b) => {
+      const oa = orderVal(a);
+      const ob = orderVal(b);
+      if (oa !== ob) return oa - ob;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+    // both librarians and admins see all tickets; sorted pending -> others -> resolved
+    return copy;
   }, [tickets, user]);
 
   return (
@@ -64,6 +82,7 @@ const SupportTickets = () => {
         <DataTable
           title={user?.role === 'LIBRARIAN' ? 'Awaiting Tickets' : 'All Tickets'}
           data={visibleTickets}
+          rowClass={(r) => (String(r.status || '').toLowerCase() === 'pending' ? 'bg-red-50' : String(r.status || '').toLowerCase() === 'resolved' ? 'bg-green-50' : '')}
           columns={[
             ...columns,
             {
@@ -80,7 +99,7 @@ const SupportTickets = () => {
         {selected && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <p className="text-sm"><strong>From:</strong> {getUserName(selected.raisedBy)}</p>
+              <p className="text-sm"><strong>From:</strong> {selected.raisedByName || selected.raisedBy}</p>
               <p className="text-sm"><strong>Status:</strong> <StatusBadge status={selected.status} /></p>
               <p className="text-sm text-muted-foreground">Created: {new Date(selected.createdAt).toLocaleString()}</p>
             </div>
@@ -90,7 +109,7 @@ const SupportTickets = () => {
             </div>
             {selected.adminResponse && (
               <div className="border-t border-border pt-4 bg-accent/5 p-3 rounded">
-                <p><strong>Response:</strong> {getUserName(selected.respondedBy || '')}</p>
+                <p><strong>Response:</strong> {selected.respondedByName || selected.respondedBy}</p>
                 <p className="text-sm mt-2 whitespace-pre-wrap">{selected.adminResponse}</p>
               </div>
             )}
@@ -107,7 +126,7 @@ const SupportTickets = () => {
                     if (!reply.trim() || !selected) return;
                     setSending(true);
                     try {
-                      await api.tickets.respond(selected._id, reply.trim(), 'in_progress');
+                      await api.tickets.respond(selected._id, reply.trim(), 'resolved');
                       toast({ title: 'Response sent' });
                       setReply('');
                       await loadTickets();

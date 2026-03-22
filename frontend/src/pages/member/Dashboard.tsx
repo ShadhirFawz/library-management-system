@@ -18,7 +18,7 @@ const MemberDashboard = () => {
   const myBorrows = mockBorrowOrders.filter(o => o.userId === uid);
   const myReservations = mockReservations.filter(r => r.userId === uid);
   const myFines = mockFines.filter(f => f.userId === uid && f.status === 'UNPAID');
-  const myTickets = mockSupportTickets.filter(t => t.userId === uid && (t.status === 'OPEN' || t.status === 'IN_PROGRESS'));
+  const myTickets = mockSupportTickets.filter(t => t.userId === uid && String(t.status || '').toLowerCase() === 'pending');
 
   const borrowCols: ColumnDef<BorrowOrder>[] = [
     { accessorKey: 'bookCopyId', header: 'Book', cell: ({ row }) => getBookByBookCopyId(row.original.bookCopyId).title },
