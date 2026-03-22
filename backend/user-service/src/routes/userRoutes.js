@@ -53,7 +53,7 @@ router.put("/profile", authenticate, userController.updateProfile);
  * @swagger
  * /api/users:
  *   get:
- *     summary: Get all users (Admin only)
+ *     summary: Get all users (Admin/Librarian only)
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -64,13 +64,13 @@ router.put("/profile", authenticate, userController.updateProfile);
  *       403:
  *         description: Forbidden
  */
-router.get("/", authenticate, authorize("ADMIN"), userController.getAllUsers);
+router.get("/", authenticate, authorize("ADMIN", "LIBRARIAN"), userController.getAllUsers);
 
 /**
  * @swagger
  * /api/users/{id}:
  *   get:
- *     summary: Get user by ID (Admin only)
+ *     summary: Get user by ID (Admin/Librarian only)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -89,7 +89,7 @@ router.get("/", authenticate, authorize("ADMIN"), userController.getAllUsers);
  *       404:
  *         description: User not found
  */
-router.get("/:id", authenticate, authorize("ADMIN"), userController.getUserById);
+router.get("/:id", authenticate, authorize("ADMIN", "LIBRARIAN"), userController.getUserById);
 
 /**
  * @swagger

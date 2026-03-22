@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, BookOpen, UserCheck,
@@ -6,6 +6,7 @@ import {
   AlertCircle, LifeBuoy, LogOut, Menu, X, Search, ChevronDown
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useApi } from '@/hooks/useApi';
 
 const menuItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard', roles: ['ADMIN', 'LIBRARIAN'] },
@@ -26,8 +27,30 @@ const StaffLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [avatarImageError, setAvatarImageError] = useState(false);
+  const [pendingReservations, setPendingReservations] = useState(0);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const api = useApi();
+
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const data = await api.reservations.getAll();
+        const reservations = data.reservations || [];
+        const pending = reservations.filter((r: any) => r.status === 'pending').length;
+        setPendingReservations(pending);
+      } catch (err) {
+        console.error('Failed to fetch pending reservations:', err);
+      }
+    };
+
+    if (user && (user.role === 'ADMIN' || user.role === 'LIBRARIAN')) {
+      fetchPendingCount();
+      // Refresh count every 30 seconds
+      const interval = setInterval(fetchPendingCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, api]);
 
   const handleLogout = () => {
     logout();
@@ -58,11 +81,18 @@ const StaffLayout = () => {
               to={item.path}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `flex items-center px-3 py-2.5 text-sm font-medium rounded transition-colors duration-150 ${isActive ? 'bg-accent text-accent-foreground' : 'text-primary-foreground/80 hover:bg-sidebar-accent'}`
+                `flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded transition-colors duration-150 ${isActive ? 'bg-accent text-accent-foreground' : 'text-primary-foreground/80 hover:bg-sidebar-accent'}`
               }
             >
-              <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
-              {item.label}
+              <div className="flex items-center">
+                <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                {item.label}
+              </div>
+              {item.label === 'Reservations' && pendingReservations > 0 && (
+                <span className="ml-auto bg-destructive text-destructive-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                  {pendingReservations}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

@@ -11,6 +11,7 @@ interface Order {
   userId: string;
   bookCopyId: string;
   bookId: string;
+  bookTitle?: string;
   borrowDate: string;
   dueDate: string;
   returnDate?: string;
@@ -29,7 +30,28 @@ const MyBorrowings = () => {
     try {
       setLoading(true);
       const data = await api.orders.getMy();
-      setOrders(data.orders || []);
+      const ordersData = data.orders || [];
+
+      // Enrich orders with book titles
+      const enrichedOrders = await Promise.all(
+        ordersData.map(async (order: any) => {
+          let bookTitle = 'Unknown Book';
+
+          try {
+            const bookRes = await api.books.getById(order.bookId);
+            bookTitle = bookRes?.book?.title || 'Unknown Book';
+          } catch (err) {
+            console.error('Failed to fetch book:', err);
+          }
+
+          return {
+            ...order,
+            bookTitle,
+          };
+        })
+      );
+
+      setOrders(enrichedOrders);
       setError(null);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch orders');
@@ -44,7 +66,11 @@ const MyBorrowings = () => {
   const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
   const columns: ColumnDef<Order>[] = [
-    { accessorKey: 'bookId', header: 'Book ID', cell: ({ row }) => <span className="font-mono text-xs">{row.original.bookId}</span> },
+    {
+      accessorKey: 'bookTitle',
+      header: 'Book',
+      cell: ({ row }) => <span className="font-medium">{row.original.bookTitle}</span>
+    },
     { accessorKey: 'bookCopyId', header: 'Copy ID', cell: ({ row }) => <span className="font-mono text-xs">{row.original.bookCopyId}</span> },
     { accessorKey: 'borrowDate', header: 'Borrow Date', cell: ({ row }) => <span className="tabular-nums">{formatDate(row.original.borrowDate)}</span> },
     { accessorKey: 'dueDate', header: 'Due Date', cell: ({ row }) => <span className="tabular-nums">{formatDate(row.original.dueDate)}</span> },
@@ -59,7 +85,7 @@ const MyBorrowings = () => {
   return (
     <div className="space-y-6">
       <div><h1 className="text-2xl font-bold">My Borrowings</h1><p className="text-muted-foreground text-sm">Track your borrowed books</p></div>
-      <DataTable title="My Borrow Orders" data={orders} columns={columns} />
+      <DataTable title="My Borrow Orders" data={orders} columns={columns} searchPlaceholder="Search by book title or copy ID..." />
     </div>
   );
 };

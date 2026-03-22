@@ -1,0 +1,17 @@
+{
+  "name": "LibraManage - Library Management System",
+  "short_name": "LibraManage",
+  "description": "Comprehensive library management system for managing books, borrowings, reservations, and member services",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "/book-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

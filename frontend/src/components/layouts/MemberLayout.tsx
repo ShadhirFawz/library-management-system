@@ -13,6 +13,7 @@ const MemberLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [avatarImageError, setAvatarImageError] = useState(false);
+  const [pendingReservations, setPendingReservations] = useState(0);
   const { user, logout, updateCurrentUser } = useAuth();
   const api = useApi();
   const navigate = useNavigate();
@@ -26,6 +27,26 @@ const MemberLayout = () => {
   useEffect(() => {
     setAvatarImageError(false);
   }, [user?.profileImage]);
+
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const data = await api.reservations.getMy();
+        const reservations = data.reservations || [];
+        const pending = reservations.filter((r: any) => r.status === 'pending').length;
+        setPendingReservations(pending);
+      } catch (err) {
+        console.error('Failed to fetch pending reservations:', err);
+      }
+    };
+
+    if (user) {
+      fetchPendingCount();
+      // Refresh count every 30 seconds
+      const interval = setInterval(fetchPendingCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, api]);
 
   useEffect(() => {
     if (!user?._id) return;
@@ -196,7 +217,7 @@ const MemberLayout = () => {
         <div className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden" onClick={() => setMobileMenuOpen(false)}>
           <div className="fixed left-0 top-16 bottom-0 w-64 bg-white shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <nav className="p-4 space-y-1">
-              {navItems.filter((item, index, self) => 
+              {navItems.filter((item, index, self) =>
                 index === self.findIndex((i) => i.path === item.path && i.label === item.label)
               ).map((item) => (
                 <NavLink
@@ -204,15 +225,22 @@ const MemberLayout = () => {
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center px-4 py-3 rounded-lg transition ${
-                      isActive 
-                        ? 'bg-blue-50 text-blue-600' 
+                    `flex items-center justify-between px-4 py-3 rounded-lg transition ${
+                      isActive
+                        ? 'bg-blue-50 text-blue-600'
                         : 'text-gray-700 hover:bg-gray-100'
                     }`
                   }
                 >
-                  <item.icon className="h-5 w-5 mr-3" />
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <div className="flex items-center">
+                    <item.icon className="h-5 w-5 mr-3" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </div>
+                  {item.label === 'My Reservations' && pendingReservations > 0 && (
+                    <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                      {pendingReservations}
+                    </span>
+                  )}
                 </NavLink>
               ))}
             </nav>
@@ -234,7 +262,14 @@ const MemberLayout = () => {
                   className="group relative overflow-hidden rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105"
                 >
                   <div className={`${action.color} p-5 text-white`}>
-                    <action.icon className="h-8 w-8 mb-2" />
+                    <div className="flex items-start justify-between">
+                      <action.icon className="h-8 w-8 mb-2" />
+                      {action.label === 'My Reservations' && pendingReservations > 0 && (
+                        <span className="bg-white text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                          {pendingReservations}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-base font-semibold">{action.label}</p>
                     <p className="text-xs opacity-90 mt-1">{action.description}</p>
                   </div>
@@ -254,14 +289,19 @@ const MemberLayout = () => {
           <NavLink
             key={item.path}
             to={item.path}
-            className={({ isActive }) => 
-              `flex flex-col items-center px-3 py-1 rounded-lg transition ${
+            className={({ isActive }) =>
+              `relative flex flex-col items-center px-3 py-1 rounded-lg transition ${
                 isActive ? 'text-blue-600' : 'text-gray-600'
               }`
             }
           >
             <item.icon className="h-5 w-5" />
             <span className="text-xs mt-1">{item.label.replace('My ', '').replace(' & Support', '')}</span>
+            {item.label === 'My Reservations' && pendingReservations > 0 && (
+              <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold h-5 w-5 flex items-center justify-center rounded-full">
+                {pendingReservations}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>
