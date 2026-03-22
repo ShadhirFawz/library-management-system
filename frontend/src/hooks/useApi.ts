@@ -12,6 +12,23 @@ const USER_SERVICE_URL =
   import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:5001";
 
 export const useApi = () => {
+  const clearAuthAndRedirectToLogin = () => {
+    localStorage.removeItem("libramanage_auth");
+    window.location.href = "/login";
+  };
+
+  const hasStoredToken = () => {
+    const stored = localStorage.getItem("libramanage_auth");
+    if (!stored) return false;
+
+    try {
+      const { token } = JSON.parse(stored);
+      return Boolean(token);
+    } catch {
+      return false;
+    }
+  };
+
   const getAuthHeaders = () => {
     const stored = localStorage.getItem("libramanage_auth");
     const headers: HeadersInit = {
@@ -59,9 +76,18 @@ export const useApi = () => {
 
       // Handle 401 Unauthorized
       if (response.status === 401) {
-        localStorage.removeItem("libramanage_auth");
-        window.location.href = "/login";
-        return null;
+        const isUserService = service === "user-service";
+        const isAuthRelatedEndpoint =
+          cleanEndpoint.startsWith("auth/") || cleanEndpoint.startsWith("users/profile");
+
+        // Only force logout when auth validation itself fails on user-service.
+        // Avoid dropping session for transient 401s from other services.
+        if (hasStoredToken() && isUserService && isAuthRelatedEndpoint) {
+          clearAuthAndRedirectToLogin();
+          return null;
+        }
+
+        throw new Error("Unauthorized request");
       }
 
       if (!response.ok) {

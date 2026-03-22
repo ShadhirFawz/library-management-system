@@ -22,8 +22,7 @@ const Login = () => {
       
       if (result.success) {
         toast({ title: 'Login successful', description: 'Welcome back!' });
-        const stored = JSON.parse(localStorage.getItem('libramanage_auth') || '{}');
-        const role = stored.user?.role;
+        const role = result.user?.role;
         if (role === 'MEMBER') navigate('/member/dashboard');
         else navigate('/staff/dashboard');
       } else {

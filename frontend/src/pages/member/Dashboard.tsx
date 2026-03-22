@@ -48,13 +48,8 @@ const MemberDashboard = () => {
       <div className="bg-card border border-border rounded p-6">
         <h1 className="text-2xl font-bold mb-1">Welcome, {user?.fullName || 'Member'}!</h1>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          <span>Membership: <strong className="text-foreground">{membershipName}</strong></span>
-          {myMembership && (
-            <>
-              <span>Status: <StatusBadge status={myMembership.status} /></span>
-              <span>Expires: <strong className="text-foreground tabular-nums">{myMembership.expiryDate}</strong></span>
-            </>
-          )}
+          <span>Membership: <strong className="text-foreground">Student</strong></span>
+          
         </div>
       </div>
 
