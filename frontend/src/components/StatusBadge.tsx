@@ -22,7 +22,7 @@ const colorMap: Record<string, string> = {
   EXPIRED: 'bg-destructive/10 text-destructive border-destructive/20',
 
   BORROWED: 'bg-accent/10 text-accent border-accent/20',
-  PENDING: 'bg-accent/10 text-accent border-accent/20',
+  PENDING: 'bg-destructive/10 text-destructive border-destructive/20',
   IN_PROGRESS: 'bg-accent/10 text-accent border-accent/20',
   OPEN: 'bg-accent/10 text-accent border-accent/20',
 
@@ -33,9 +33,6 @@ const colorMap: Record<string, string> = {
 
   // Priority
   LOW: 'bg-muted text-muted-foreground border-border',
-  PENDING: 'bg-destructive/10 text-destructive border-destructive/20',
-  IN_PROGRESS: 'bg-accent/10 text-accent border-accent/20',
-  OPEN: 'bg-accent/10 text-accent border-accent/20',
 };
 
 const StatusBadge = ({ status }: StatusBadgeProps) => {

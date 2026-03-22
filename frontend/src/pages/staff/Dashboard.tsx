@@ -1,10 +1,12 @@
 import { Users, BookOpen, ShoppingCart, AlertCircle, LifeBuoy, UserCheck } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import { DataTable } from '@/components/DataTable';
-import { mockUsers, mockBooks, mockBorrowOrders, mockSupportTickets, getUserName, getBookByBookCopyId } from '@/data/mockData';
+import { mockUsers, mockBooks, mockBorrowOrders, getUserName, getBookByBookCopyId } from '@/data/mockData';
 import StatusBadge from '@/components/StatusBadge';
 import { ColumnDef } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
+import { useApi } from '@/hooks/useApi';
+import { useEffect, useState } from 'react';
 
 const StaffDashboard = () => {
   const navigate = useNavigate();
@@ -13,10 +15,25 @@ const StaffDashboard = () => {
   const totalBooks = mockBooks.length;
   const availableCopies = mockBooks.reduce((s, b) => s + b.availableCopies, 0);
   const overdueOrders = mockBorrowOrders.filter(o => o.status === 'OVERDUE').length;
-  const openTickets = mockSupportTickets.filter(t => String(t.status || '').toLowerCase() === 'pending').length;
-
   const recentBorrows = mockBorrowOrders.slice(0, 5);
-  const recentTickets = mockSupportTickets.slice(0, 5);
+  const api = useApi();
+  const [openTickets, setOpenTickets] = useState(0);
+  const [recentTickets, setRecentTickets] = useState<any[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await api.tickets.getAll();
+        const tickets = res?.tickets || [];
+        const pending = tickets.filter((t: any) => String(t.status || '').toLowerCase() === 'pending');
+        setOpenTickets(pending.length);
+        setRecentTickets(tickets.slice(0, 5));
+      } catch (err) {
+        setOpenTickets(0);
+        setRecentTickets([]);
+      }
+    })();
+  }, []);
 
   const borrowCols: ColumnDef<typeof recentBorrows[0]>[] = [
     { accessorKey: 'userId', header: 'User', cell: ({ row }) => getUserName(row.original.userId) },

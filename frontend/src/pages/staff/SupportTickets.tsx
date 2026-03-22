@@ -15,6 +15,7 @@ const SupportTickets = () => {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'resolved'>('all');
   const { user } = useAuth();
   const { toast } = useToast();
   const api = useApi();
@@ -57,7 +58,10 @@ const SupportTickets = () => {
 
   const visibleTickets = useMemo(() => {
     // sort: pending first, then others, resolved last
-    const copy = [...tickets];
+    const copy = tickets.filter(t => {
+      if (statusFilter === 'all') return true;
+      return String(t.status || '').toLowerCase() === statusFilter;
+    });
     const orderVal = (t: any) => {
       const s = String(t.status || '').toLowerCase();
       if (s === 'pending') return 0;
@@ -72,7 +76,7 @@ const SupportTickets = () => {
     });
     // both librarians and admins see all tickets; sorted pending -> others -> resolved
     return copy;
-  }, [tickets, user]);
+  }, [tickets, user, statusFilter]);
 
   return (
     <div className="space-y-6">
@@ -85,6 +89,20 @@ const SupportTickets = () => {
           const idx = row.getAttribute('data-row-index');
         }
       }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted-foreground">Filter:</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="border border-border rounded px-2 py-1 text-sm bg-background"
+            >
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
         <DataTable
           title={user?.role === 'LIBRARIAN' ? 'Awaiting Tickets' : 'All Tickets'}
           data={visibleTickets}
@@ -109,7 +127,7 @@ const SupportTickets = () => {
               <p className="text-sm text-muted-foreground">Created: {new Date(selected.createdAt).toLocaleString()}</p>
             </div>
             <div className="border-t border-border pt-4">
-              <p><strong>Description:</strong></p>
+              <p><strong>Message:</strong></p>
               <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">{selected.description}</p>
             </div>
             {selected.adminResponse && (

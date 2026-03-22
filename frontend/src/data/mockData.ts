@@ -125,10 +125,13 @@ export interface SupportTicket {
   subject: string;
   description: string; // main message body
   category?: string;
+  userId?: string;
   raisedBy: string;
+  raisedByName?: string;
   status: 'pending' | 'resolved';
   adminResponse?: string | null;
   respondedBy?: string | null;
+  respondedByName?: string | null;
   messages?: TicketMessage[]; // optional thread
   createdAt: string;
   updatedAt: string;
@@ -231,35 +234,46 @@ export const mockFines: Fine[] = [
   { _id: 'fine3', userId: 'usr4', borrowOrderId: 'bo2', amount: 15.00, reason: 'Book damage fee', status: 'UNPAID', issuedDate: '2025-03-12', paidDate: null },
 ];
 
-export const mockSupportTickets: SupportTicket[] = [
-  {
-    _id: 'tkt1', userId: 'usr3', subject: 'Cannot access my borrowing history', category: 'Technical', description: 'I cannot see my past borrowings. The page shows an error.', status: 'pending',
-    messages: [
-      { _id: 'msg1', senderId: 'usr3', senderName: 'Alice Member', message: 'I cannot see my past borrowings. The page shows an error.', timestamp: '2025-03-15T10:00:00Z' },
-      { _id: 'msg2', senderId: 'usr2', senderName: 'Sarah Librarian', message: 'We are looking into this issue. Can you try clearing your browser cache?', timestamp: '2025-03-15T11:30:00Z' },
-    ],
-    createdAt: '2025-03-15T10:00:00Z', updatedAt: '2025-03-15T11:30:00Z',
-  },
-  {
-    _id: 'tkt2', userId: 'usr4', subject: 'Request for new book acquisition', category: 'General', description: 'I would like to request "System Design Interview" by Alex Xu.', status: 'pending',
-    messages: [
-      { _id: 'msg3', senderId: 'usr4', senderName: 'Bob Reader', message: 'I would like to request "System Design Interview" by Alex Xu.', timestamp: '2025-03-14T09:00:00Z' },
-    ],
-    createdAt: '2025-03-14T09:00:00Z', updatedAt: '2025-03-14T09:00:00Z',
-  },
-  {
-    _id: 'tkt3', userId: 'usr6', subject: 'Fine dispute', category: 'Billing', description: 'I returned the book on time but was still charged a fine. Please review.', status: 'pending',
-    messages: [
-      { _id: 'msg4', senderId: 'usr6', senderName: 'Diana Bookworm', message: 'I returned the book on time but was still charged a fine. Please review.', timestamp: '2025-03-16T14:00:00Z' },
-    ],
-    createdAt: '2025-03-16T14:00:00Z', updatedAt: '2025-03-16T14:00:00Z',
-  },
-];
 
 export const mockArticles: Article[] = [
   { _id: 'art1', title: 'How to renew books online', content: 'To renew books, go to My Borrowings and click renew...', category: 'Help', createdBy: 'usr2', createdAt: '2025-03-10T09:00:00Z' },
   { _id: 'art2', title: 'Membership benefits explained', content: 'Premium members enjoy extended borrow limits...', category: 'Membership', createdBy: 'usr1', createdAt: '2025-02-20T08:30:00Z' },
   { _id: 'art3', title: 'Library internet access', content: 'Free Wi-Fi is available at all branches...', category: 'Facilities', createdBy: 'usr2', createdAt: '2025-01-15T12:00:00Z' },
+];
+
+export const mockSupportTickets: SupportTicket[] = [
+  {
+    _id: 't1',
+    subject: 'Unable to login',
+    description: 'I cannot login with my credentials, keeps saying invalid password.',
+    category: 'Account',
+    userId: 'usr3',
+    raisedBy: 'usr3',
+    raisedByName: 'Alice Member',
+    status: 'pending',
+    adminResponse: null,
+    respondedBy: null,
+    respondedByName: null,
+    messages: [],
+    createdAt: '2025-03-18T10:00:00Z',
+    updatedAt: '2025-03-18T10:00:00Z',
+  },
+  {
+    _id: 't2',
+    subject: 'Payment receipt missing',
+    description: 'I paid a fine but did not receive a receipt.',
+    category: 'Billing',
+    userId: 'usr4',
+    raisedBy: 'usr4',
+    raisedByName: 'Bob Reader',
+    status: 'resolved',
+    adminResponse: 'We have emailed the receipt to your address.',
+    respondedBy: 'usr2',
+    respondedByName: 'Sarah Librarian',
+    messages: [],
+    createdAt: '2025-02-28T09:00:00Z',
+    updatedAt: '2025-03-01T12:00:00Z',
+  },
 ];
 
 export const mockUserMemberships: UserMembership[] = [
