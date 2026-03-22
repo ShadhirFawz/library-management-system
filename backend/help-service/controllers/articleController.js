@@ -39,6 +39,7 @@ const createArticle = async (req, res) => {
       content,
       category,
       createdBy: req.user.userId,
+      createdByName: req.user.fullName || req.user.fullname || null,
     });
 
     res.status(201).json({ message: "Article created", article });

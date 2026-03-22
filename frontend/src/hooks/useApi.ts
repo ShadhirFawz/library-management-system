@@ -320,7 +320,11 @@ export const useApi = () => {
         }),
     },
     articles: {
-      getAll: () => callApi("help-service", "faq"),
+      getAll: (category?: string) =>
+        callApi(
+          "help-service",
+          category ? `faq?category=${encodeURIComponent(category)}` : "faq",
+        ),
       create: (data: any) =>
         callApi("help-service", "faq", {
           method: "POST",
@@ -328,7 +332,7 @@ export const useApi = () => {
         }),
       update: (id: string, data: any) =>
         callApi("help-service", `faq/${id}`, {
-          method: "PATCH",
+          method: "PUT",
           body: JSON.stringify(data),
         }),
       delete: (id: string) =>
