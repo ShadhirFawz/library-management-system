@@ -58,8 +58,11 @@ const Register = () => {
       });
 
       if (result.success) {
-        toast({ title: 'Registration successful', description: 'Welcome to LibraManage!' });
-        navigate('/member/dashboard');
+        toast({
+          title: 'Registration successful',
+          description: 'Account created successfully. Please log in to continue.',
+        });
+        navigate('/login');
       } else {
         toast({ 
           title: 'Registration failed', 

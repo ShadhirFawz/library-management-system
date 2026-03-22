@@ -9,11 +9,17 @@ interface AuthUser {
   membershipId: string | null;
 }
 
+interface RegisterPayload {
+  fullName: string;
+  email: string;
+  password: string;
+}
+
 interface AuthContextType {
   user: AuthUser | null;
   token: string | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (data: any) => Promise<{ success: boolean; error?: string }>;
+  register: (data: RegisterPayload) => Promise<{ success: boolean; error?: string }>;
   updateCurrentUser: (updates: Partial<AuthUser>) => void;
   logout: () => void;
   isAuthenticated: boolean;
@@ -90,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (data: any): Promise<{ success: boolean; error?: string }> => {
+  const register = async (data: RegisterPayload): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
       const response = await fetch(`${USER_SERVICE_URL}/auth/register`, {
@@ -110,26 +116,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { success: false, error: error.message || 'Registration failed' };
       }
 
-      const responseData = await response.json();
-      const { user: backendUser } = responseData;
+      await response.json();
 
-      // Map backend user to our AuthUser interface
-      const mappedUser: AuthUser = {
-        _id: backendUser._id,
-        fullName: backendUser.fullName,
-        role: 'MEMBER',
-        email: backendUser.email,
-        profileImage: backendUser.profileImage || '',
-        membershipId: null,
-      };
-
-      // Auto-login after registration
-      // Note: The backend may or may not return a token; adjust as needed
-      const token = responseData.token || 'temp-token';
-      const authData = { token, user: mappedUser };
-      localStorage.setItem('libramanage_auth', JSON.stringify(authData));
-      setUser(mappedUser);
-      setToken(token);
+      // Do not create a session on successful registration.
+      // User must explicitly log in after registering.
+      localStorage.removeItem('libramanage_auth');
+      setUser(null);
+      setToken(null);
 
       return { success: true };
     } catch (error) {
