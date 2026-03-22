@@ -22,7 +22,7 @@ const colorMap: Record<string, string> = {
   EXPIRED: 'bg-destructive/10 text-destructive border-destructive/20',
 
   BORROWED: 'bg-accent/10 text-accent border-accent/20',
-  PENDING: 'bg-accent/10 text-accent border-accent/20',
+  PENDING: 'bg-destructive/10 text-destructive border-destructive/20',
   IN_PROGRESS: 'bg-accent/10 text-accent border-accent/20',
   OPEN: 'bg-accent/10 text-accent border-accent/20',
 
@@ -39,10 +39,12 @@ const colorMap: Record<string, string> = {
 };
 
 const StatusBadge = ({ status }: StatusBadgeProps) => {
-  const classes = colorMap[status] ?? 'bg-muted text-muted-foreground border-border';
+  const key = String(status || '').toUpperCase();
+  const classes = colorMap[key] ?? 'bg-muted text-muted-foreground border-border';
+  const label = String(status || '').replace(/_/g, ' ');
   return (
     <span className={`inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded border ${classes}`}>
-      {status.replace('_', ' ')}
+      {label}
     </span>
   );
 };

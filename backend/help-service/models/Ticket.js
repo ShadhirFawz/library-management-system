@@ -15,6 +15,10 @@ const ticketSchema = new mongoose.Schema(
       type: String, // user ID from JWT
       required: true,
     },
+    raisedByName: {
+      type: String,
+      default: null,
+    },
     status: {
       type: String,
       enum: ["pending", "resolved"],
@@ -26,6 +30,10 @@ const ticketSchema = new mongoose.Schema(
     },
     respondedBy: {
       type: String, // admin ID from JWT
+      default: null,
+    },
+    respondedByName: {
+      type: String,
       default: null,
     },
   },

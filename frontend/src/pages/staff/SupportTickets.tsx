@@ -38,16 +38,31 @@ const SupportTickets = () => {
 
   const columns: ColumnDef<SupportTicket>[] = [
     { accessorKey: 'subject', header: 'Subject' },
-    { id: 'raisedBy', header: 'Raised By', cell: ({ row }) => getUserName(row.original.raisedBy) },
+    { id: 'raisedBy', header: 'Raised By', cell: ({ row }) => row.original.raisedByName || 'Unknown' },
     { accessorKey: 'status', header: 'Status', cell: ({ row }) => <StatusBadge status={row.original.status} /> },
     { accessorKey: 'createdAt', header: 'Created', cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString() },
   ];
 
   const visibleTickets = useMemo(() => {
-    if (user?.role === 'LIBRARIAN') {
-      return tickets.filter(t => (t.status === 'open' || t.status === 'in_progress') && !t.adminResponse);
-    }
-    return tickets;
+    // Show all tickets to staff (ADMIN and LIBRARIAN)
+    // Sort: pending first, in-progress/open next, resolved last. Newer first within same status.
+    const order = (status?: string) => {
+      const s = String(status || '').toLowerCase();
+      if (s === 'pending') return 0;
+      if (s === 'in_progress' || s === 'in-progress' || s === 'inprogress' || s === 'open') return 1;
+      if (s === 'resolved') return 2;
+      return 1;
+    };
+
+    const sorted = [...tickets].sort((a, b) => {
+      const oa = order(a.status);
+      const ob = order(b.status);
+      if (oa !== ob) return oa - ob;
+      // same group: newest first
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return sorted;
   }, [tickets, user]);
 
   return (
@@ -64,6 +79,12 @@ const SupportTickets = () => {
         <DataTable
           title={user?.role === 'LIBRARIAN' ? 'Awaiting Tickets' : 'All Tickets'}
           data={visibleTickets}
+          rowClass={(row) => {
+            const s = String(row.status || '').toLowerCase();
+            if (s === 'pending') return 'bg-destructive/5';
+            if (s === 'resolved') return 'bg-success/5';
+            return '';
+          }}
           columns={[
             ...columns,
             {
@@ -80,7 +101,7 @@ const SupportTickets = () => {
         {selected && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <p className="text-sm"><strong>From:</strong> {getUserName(selected.raisedBy)}</p>
+              <p className="text-sm"><strong>From:</strong> {selected.raisedByName || 'Unknown'}</p>
               <p className="text-sm"><strong>Status:</strong> <StatusBadge status={selected.status} /></p>
               <p className="text-sm text-muted-foreground">Created: {new Date(selected.createdAt).toLocaleString()}</p>
             </div>
@@ -90,7 +111,7 @@ const SupportTickets = () => {
             </div>
             {selected.adminResponse && (
               <div className="border-t border-border pt-4 bg-accent/5 p-3 rounded">
-                <p><strong>Response:</strong> {getUserName(selected.respondedBy || '')}</p>
+                <p><strong>Response:</strong> {selected.respondedByName || 'Staff'}</p>
                 <p className="text-sm mt-2 whitespace-pre-wrap">{selected.adminResponse}</p>
               </div>
             )}
@@ -106,8 +127,8 @@ const SupportTickets = () => {
                   onClick={async () => {
                     if (!reply.trim() || !selected) return;
                     setSending(true);
-                    try {
-                      await api.tickets.respond(selected._id, reply.trim(), 'in_progress');
+                      try {
+                      await api.tickets.respond(selected._id, reply.trim(), 'resolved');
                       toast({ title: 'Response sent' });
                       setReply('');
                       await loadTickets();

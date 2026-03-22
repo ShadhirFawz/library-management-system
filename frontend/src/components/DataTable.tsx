@@ -13,9 +13,10 @@ interface DataTableProps<T> {
   data: T[];
   title: string;
   searchPlaceholder?: string;
+  rowClass?: (row: T) => string;
 }
 
-export function DataTable<T>({ columns, data, title, searchPlaceholder = 'Search...' }: DataTableProps<T>) {
+export function DataTable<T>({ columns, data, title, searchPlaceholder = 'Search...', rowClass }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -172,7 +173,7 @@ export function DataTable<T>({ columns, data, title, searchPlaceholder = 'Search
               <tr><td colSpan={columns.length} className="px-6 py-8 text-center text-muted-foreground">No records found.</td></tr>
             ) : (
               table.getRowModel().rows.map(row => (
-                <tr key={row.id} className="hover:bg-muted/50 transition-colors duration-150">
+                <tr key={row.id} className={`${rowClass ? rowClass(row.original) : ''} hover:bg-muted/50 transition-colors duration-150`}>
                   {row.getVisibleCells().map(cell => (
                     <td key={cell.id} className="px-4 lg:px-6 py-3 text-sm whitespace-nowrap">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

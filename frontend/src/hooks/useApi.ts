@@ -306,20 +306,20 @@ export const useApi = () => {
         callApi("order-service", `fines/${id}/pay`, { method: "POST" }),
     },
     support: {
-      getAll: () => callApi("help-service", "tickets"),
+      getAll: () => callApi("help-service", "tickets/all"),
       create: (data: any) =>
         callApi("help-service", "tickets", {
           method: "POST",
           body: JSON.stringify(data),
         }),
       reply: (id: string, data: any) =>
-        callApi("help-service", `tickets/${id}/reply`, {
-          method: "POST",
+        callApi("help-service", `tickets/${id}/respond`, {
+          method: "PUT",
           body: JSON.stringify(data),
         }),
       updateStatus: (id: string, status: string) =>
-        callApi("help-service", `tickets/${id}/status`, {
-          method: "PATCH",
+        callApi("help-service", `tickets/${id}/respond`, {
+          method: "PUT",
           body: JSON.stringify({ status }),
         }),
     },
@@ -343,6 +343,7 @@ export const useApi = () => {
     },
     tickets: {
       getAll: () => callApi("help-service", "tickets/all"),
+      getMy: () => callApi("help-service", "tickets/my"),
       create: (data: any) =>
         callApi("help-service", "tickets", {
           method: "POST",

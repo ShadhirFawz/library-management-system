@@ -11,10 +11,16 @@ const raiseTicket = async (req, res) => {
         .json({ error: "Subject and description are required" });
     }
 
+    const raisedById =
+      req.user?.userId || req.user?.userId || req.user?.id || req.user?.id;
+    const raisedByName =
+      req.user?.fullName || req.user?.user?.fullName || req.user?.name || null;
+
     const ticket = await Ticket.create({
       subject,
       description,
-      raisedBy: req.user.userId,
+      raisedBy: raisedById,
+      raisedByName,
     });
 
     res.status(201).json({ message: "Ticket raised successfully", ticket });
@@ -26,7 +32,8 @@ const raiseTicket = async (req, res) => {
 // USER - View own tickets
 const getMyTickets = async (req, res) => {
   try {
-    const tickets = await Ticket.find({ raisedBy: req.user.userId }).sort({
+    const userId = req.user?.userId || req.user?.id;
+    const tickets = await Ticket.find({ raisedBy: userId }).sort({
       createdAt: -1,
     });
     res.json({ count: tickets.length, tickets });
@@ -61,11 +68,16 @@ const respondToTicket = async (req, res) => {
         .json({ error: `Status must be one of ${allowedStatus.join(", ")}` });
     }
 
+    const respondedById = req.user?.userId || req.user?.id;
+    const respondedByName =
+      req.user?.fullName || req.user?.user?.fullName || null;
+
     const ticket = await Ticket.findByIdAndUpdate(
       req.params.id,
       {
         adminResponse: response,
-        respondedBy: req.user.userId,
+        respondedBy: respondedById,
+        respondedByName,
         status: status || "resolved",
       },
       { new: true },
