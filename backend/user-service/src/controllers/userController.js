@@ -37,6 +37,52 @@ exports.updateProfile = async (req, res, next) => {
 
 };
 
+exports.updatePassword = async (req, res, next) => {
+
+  try {
+
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        message: "currentPassword, newPassword and confirmPassword are required"
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        message: "New password must be at least 8 characters long"
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "New password and confirm password do not match"
+      });
+    }
+
+    await userService.updateUserPassword(
+      req.user.id,
+      currentPassword,
+      newPassword
+    );
+
+    res.json({
+      message: "Password updated successfully"
+    });
+
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        message: error.message
+      });
+    }
+
+    next(error);
+  }
+
+};
+
 exports.getAllUsers = async (req, res, next) => {
 
   try {

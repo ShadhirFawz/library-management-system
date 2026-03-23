@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { BookOpen, Eye, EyeOff } from 'lucide-react';
@@ -12,6 +12,18 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const shouldShowPasswordResetToast = sessionStorage.getItem('libramanage_post_password_change');
+
+    if (shouldShowPasswordResetToast) {
+      toast({
+        title: 'Password updated',
+        description: 'Please log in again for security.',
+      });
+      sessionStorage.removeItem('libramanage_post_password_change');
+    }
+  }, [toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

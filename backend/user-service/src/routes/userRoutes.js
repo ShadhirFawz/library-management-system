@@ -51,6 +51,40 @@ router.put("/profile", authenticate, userController.updateProfile);
 
 /**
  * @swagger
+ * /api/users/profile/password:
+ *   put:
+ *     summary: Update current user's password
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *               confirmPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ */
+router.put("/profile/password", authenticate, userController.updatePassword);
+
+/**
+ * @swagger
  * /api/users:
  *   get:
  *     summary: Get all users (Admin/Librarian only)

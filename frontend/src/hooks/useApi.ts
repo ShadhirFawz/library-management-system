@@ -136,6 +136,15 @@ export const useApi = () => {
           method: "PUT",
           body: JSON.stringify(data),
         }),
+      updatePassword: (data: {
+        currentPassword: string;
+        newPassword: string;
+        confirmPassword: string;
+      }) =>
+        callApi("user-service", "users/profile/password", {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
       getAll: () => callApi("user-service", "users"),
       getById: (id: string) => callApi("user-service", `users/${id}`),
       create: (data: any) =>
