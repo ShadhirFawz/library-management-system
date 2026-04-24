@@ -38,7 +38,6 @@ app.use("/api/manage-users", userManagementRoutes);
 app.use(errorHandler);
 
 //test
-
 const PORT = config.port;
 
 app.listen(PORT, () => {
